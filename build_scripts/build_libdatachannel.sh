@@ -38,9 +38,12 @@ fi
 
 CMAKE_SYSTEM_ARGS=""
 if [[ "$TARGET" == android-* ]]; then
-  ABI="${TARGET#android-}"
+  if [[ "$TARGET" == "android-arm64" ]]; then ABI="arm64-v8a"; fi
+  if [[ "$TARGET" == "android-arm" ]]; then ABI="armeabi-v7a"; fi
+  if [[ "$TARGET" == "android-x86_64" ]]; then ABI="x86_64"; fi
+  
   # Android Toolchain is passed from GitHub Actions via env var
-  CMAKE_SYSTEM_ARGS="-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake -DANDROID_ABI=${ABI} -DANDROID_PLATFORM=android-24"
+  CMAKE_SYSTEM_ARGS="-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake -DANDROID_ABI=${ABI} -DANDROID_PLATFORM=android-24 -GNinja"
 elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
   # iOS Toolchain passed via env var or assumed from Xcode
   PLATFORM="OS64"
