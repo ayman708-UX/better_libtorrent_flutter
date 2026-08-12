@@ -38,6 +38,10 @@ if [[ "$TARGET" == android-* ]]; then
   EXTRA_FLAGS="-D__ANDROID_API__=24"
 elif [[ "$TARGET" == linux-* ]]; then
   EXTRA_FLAGS="-fPIC"
+  if [[ "$TARGET" == "linux-aarch64" ]]; then
+    export CC=aarch64-linux-gnu-gcc
+    export CXX=aarch64-linux-gnu-g++
+  fi
 fi
 
 # Clean up before building

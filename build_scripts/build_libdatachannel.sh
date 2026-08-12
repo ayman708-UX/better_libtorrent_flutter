@@ -56,6 +56,8 @@ elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
   else
     CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_SYSROOT=iphoneos" "-DCMAKE_OSX_ARCHITECTURES=arm64")
   fi
+elif [[ "$TARGET" == "linux-aarch64" ]]; then
+  CMAKE_SYSTEM_ARGS=("-DCMAKE_SYSTEM_NAME=Linux" "-DCMAKE_SYSTEM_PROCESSOR=aarch64" "-DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc" "-DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++")
 elif [[ "$TARGET" == "VC-WIN64A" ]]; then
   CMAKE_SYSTEM_ARGS=("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
 fi

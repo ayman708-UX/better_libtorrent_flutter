@@ -169,6 +169,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Install Cross Compiler
+        if: matrix.target == 'linux-aarch64'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
       - name: Build OpenSSL
         run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/linux/${{ matrix.target }}
       - name: Build libdatachannel
