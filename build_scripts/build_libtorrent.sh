@@ -85,6 +85,7 @@ echo "Building torrent_engine bridge..."
 cmake -B build/engine -S src \
   -DCMAKE_BUILD_TYPE=Release \
   -DDEPS_DIR="$DEPS" \
+  -DCMAKE_FIND_ROOT_PATH="$DEPS" \
   -DCMAKE_INSTALL_PREFIX="$OUTPUT" \
   ${CMAKE_SYSTEM_ARGS[@]:+"${CMAKE_SYSTEM_ARGS[@]}"}
 
