@@ -147,7 +147,7 @@ jobs:
 
   # ─── Windows ─────────────────────────────────────────────────────────────
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       matrix:
         target: [VC-WIN64A]
