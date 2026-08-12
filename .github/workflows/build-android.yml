@@ -4,9 +4,10 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  workflow_call:
 
 jobs:
-  build-android-deps:
+  build-android:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -31,8 +32,12 @@ jobs:
         run: |
           export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
           bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/android/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        run: |
+          export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
+          bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/android/${{ matrix.target }} --output=$PWD/out/final/android/${{ matrix.target }}
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deps-${{ matrix.target }}
-          path: out/android/${{ matrix.target }}
+          name: engine-${{ matrix.target }}
+          path: out/final/android/${{ matrix.target }}

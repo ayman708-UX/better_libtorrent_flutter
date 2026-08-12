@@ -4,20 +4,29 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  workflow_call:
 
 jobs:
-  build-linux-deps:
-    runs-on: ubuntu-20.04
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [linux-x86_64, linux-aarch64]
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Build OpenSSL
-        run: bash build_scripts/build_openssl.sh --target=linux-x86_64 --output=$PWD/out/linux/linux-x86_64
+        run: |
+          bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/linux/${{ matrix.target }}
       - name: Build libdatachannel
-        run: bash build_scripts/build_libdatachannel.sh --target=linux-x86_64 --output=$PWD/out/linux/linux-x86_64
+        run: |
+          bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/linux/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        run: |
+          bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/linux/${{ matrix.target }} --output=$PWD/out/final/linux/${{ matrix.target }}
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deps-linux-linux-x86_64
-          path: out/linux/linux-x86_64
+          name: engine-${{ matrix.target }}
+          path: out/final/linux/${{ matrix.target }}

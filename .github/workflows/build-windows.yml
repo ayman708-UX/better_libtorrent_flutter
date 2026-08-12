@@ -4,24 +4,36 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  workflow_call:
 
 jobs:
-  build-windows-deps:
+  build-windows:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [VC-WIN64A]
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Set up NASM
-        uses: ilammy/setup-nasm@v1.5.1
-      - name: Enable Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1.13.0
+        uses: ilammy/setup-nasm@v1
       - name: Build OpenSSL
-        run: bash build_scripts/build_openssl.sh --target=VC-WIN64A --output=$PWD/out/windows/VC-WIN64A
+        shell: bash
+        run: |
+          bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/windows/${{ matrix.target }}
       - name: Build libdatachannel
-        run: bash build_scripts/build_libdatachannel.sh --target=VC-WIN64A --output=$PWD/out/windows/VC-WIN64A
+        shell: bash
+        run: |
+          bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/windows/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        shell: bash
+        run: |
+          bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/windows/${{ matrix.target }} --output=$PWD/out/final/windows/${{ matrix.target }}
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deps-windows-VC-WIN64A
-          path: out/windows/VC-WIN64A
+          name: engine-${{ matrix.target }}
+          path: out/final/windows/${{ matrix.target }}
