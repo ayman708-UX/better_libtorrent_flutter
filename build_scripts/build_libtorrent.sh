@@ -61,31 +61,15 @@ elif [[ "$TARGET" == "VC-WIN64A" ]]; then
   CMAKE_SYSTEM_ARGS=("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
 fi
 
-OPENSSL_LIB_DIR="$DEPS/lib"
-if [[ ! -d "$OPENSSL_LIB_DIR" && -d "$DEPS/lib64" ]]; then
-  OPENSSL_LIB_DIR="$DEPS/lib64"
-fi
-
-if [[ "$TARGET" == "VC-WIN64A" ]]; then
-  CRYPTO_LIB="$OPENSSL_LIB_DIR/libcrypto.lib"
-  SSL_LIB="$OPENSSL_LIB_DIR/libssl.lib"
-else
-  CRYPTO_LIB="$OPENSSL_LIB_DIR/libcrypto.a"
-  SSL_LIB="$OPENSSL_LIB_DIR/libssl.a"
-fi
-
 echo "Building libtorrent..."
 cmake -B build/libtorrent -S third_party/libtorrent \
   -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
   -Dencryption=ON -Dwebtorrent=ON -Ddht=ON -Dlogging=OFF \
   -DCMAKE_POLICY_DEFAULT_CMP0144=NEW \
-  -DCMAKE_POLICY_DEFAULT_CMP0167=NEW \
+  -DCMAKE_POLICY_DEFAULT_CMP0167=OLD \
   -DBOOST_ROOT="$PWD/third_party/boost" \
-  -DBoost_INCLUDE_DIR="$PWD/third_party/boost" \
   -DOPENSSL_ROOT_DIR="$DEPS" \
-  -DOPENSSL_INCLUDE_DIR="$DEPS/include" \
-  -DOPENSSL_CRYPTO_LIBRARY="$CRYPTO_LIB" \
-  -DOPENSSL_SSL_LIBRARY="$SSL_LIB" \
+  -DCMAKE_FIND_ROOT_PATH="$DEPS" \
   -DOPENSSL_USE_STATIC_LIBS=ON \
   -DCMAKE_PREFIX_PATH="$DEPS" \
   -DCMAKE_CXX_STANDARD=17 \

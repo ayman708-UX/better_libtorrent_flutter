@@ -80,4 +80,4 @@ target_link_libraries(torrent_engine PRIVATE
 )
 
 # Install rule
-install(TARGETS torrent_engine DESTINATION bin)
+install(TARGETS torrent_engine DESTINATION .)
