@@ -1,0 +1,15 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: BetterLibtorrentFlutterBindings
+description: |
+  Bindings for `src/torrent_bridge.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/src/bindings_generated.dart'
+headers:
+  entry-points:
+    - 'src/torrent_bridge.h'
+  include-directives:
+    - 'src/torrent_bridge.h'
+comments:
+  style: any
+  length: full
