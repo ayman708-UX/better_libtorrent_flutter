@@ -18,12 +18,17 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/../third_party/boost
 )
 
-# Find the library directory (could be lib or lib64)
-if(EXISTS "${DEPS_DIR}/lib64")
-    set(LIB_DIR "${DEPS_DIR}/lib64")
-else()
-    set(LIB_DIR "${DEPS_DIR}/lib")
-endif()
+# Helper function to find a static library
+macro(find_static_lib VAR_NAME NAMES)
+    find_library(${VAR_NAME} 
+        NAMES ${NAMES} 
+        PATHS ${DEPS_DIR}/lib ${DEPS_DIR}/lib64 
+        NO_DEFAULT_PATH
+    )
+    if(NOT ${VAR_NAME})
+        message(FATAL_ERROR "Could not find library ${NAMES} in ${DEPS_DIR}/lib or lib64")
+    endif()
+endmacro()
 
 # We build a SHARED library on Android/Linux/Windows, 
 # but on iOS/macOS we build a STATIC library to be wrapped in an xcframework.
@@ -43,28 +48,27 @@ target_compile_definitions(torrent_engine PRIVATE
 
 # Resolve libraries based on platform naming conventions
 if(WIN32)
-    set(CRYPTO_LIB "${LIB_DIR}/libcrypto.lib")
-    set(SSL_LIB "${LIB_DIR}/libssl.lib")
-    set(DATACHANNEL_LIB "${LIB_DIR}/datachannel-static.lib")
-    set(JUICE_LIB "${LIB_DIR}/juice-static.lib")
-    set(USRSCTP_LIB "${LIB_DIR}/usrsctp.lib")
-    set(TORRENT_LIB "${LIB_DIR}/torrent-rasterbar.lib")
+    find_static_lib(CRYPTO_LIB "libcrypto;crypto")
+    find_static_lib(SSL_LIB "libssl;ssl")
+    find_static_lib(DATACHANNEL_LIB "datachannel-static")
+    find_static_lib(JUICE_LIB "juice-static")
+    find_static_lib(USRSCTP_LIB "usrsctp")
+    find_static_lib(TORRENT_LIB "torrent-rasterbar")
     
     # Windows system libraries
     target_link_libraries(torrent_engine PRIVATE ws2_32 crypt32 iphlpapi bcrypt)
 else()
-    set(CRYPTO_LIB "${LIB_DIR}/libcrypto.a")
-    set(SSL_LIB "${LIB_DIR}/libssl.a")
-    set(DATACHANNEL_LIB "${LIB_DIR}/libdatachannel-static.a")
-    set(JUICE_LIB "${LIB_DIR}/libjuice-static.a")
-    set(USRSCTP_LIB "${LIB_DIR}/libusrsctp.a")
-    set(TORRENT_LIB "${LIB_DIR}/libtorrent-rasterbar.a")
+    find_static_lib(CRYPTO_LIB "libcrypto.a;crypto")
+    find_static_lib(SSL_LIB "libssl.a;ssl")
+    find_static_lib(DATACHANNEL_LIB "libdatachannel-static.a;datachannel-static")
+    find_static_lib(JUICE_LIB "libjuice-static.a;juice-static")
+    find_static_lib(USRSCTP_LIB "libusrsctp.a;usrsctp")
+    find_static_lib(TORRENT_LIB "libtorrent-rasterbar.a;torrent-rasterbar")
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries(torrent_engine PRIVATE pthread dl m)
-        if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-            target_link_libraries(torrent_engine PRIVATE log)
-        endif()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        target_link_libraries(torrent_engine PRIVATE dl m log)
     endif()
 endif()
 
