@@ -57,7 +57,7 @@ android {
         task downloadNativeLibs {
             doLast {
                 def version = "0.0.1"
-                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.2/torrent_engine-android.zip"
+                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.1/torrent_engine-android.zip"
                 def zipFile = new File(project.buildDir, "torrent_engine-android.zip")
                 def extractDir = new File(project.projectDir, "src/main/jniLibs")
 

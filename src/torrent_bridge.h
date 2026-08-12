@@ -61,6 +61,9 @@ TORRENT_API void te_torrent_set_sequential_download(te_torrent_handle_t* h, bool
 TORRENT_API void te_torrent_set_file_priority(te_torrent_handle_t* h, int file_index, int priority);
 TORRENT_API void te_torrent_set_piece_deadline(te_torrent_handle_t* h, int piece_index, int deadline, int flags);
 
+// Helper
+TORRENT_API void te_free_string(char* str);
+
 #ifdef __cplusplus
 }
 #endif

@@ -155,6 +155,11 @@ class TorrentSession {
   void _onAlert(int type, Pointer<Char> payload, Pointer<Void> userData) {
     if (payload != nullptr) {
       final jsonStr = payload.cast<Utf8>().toDartString();
+      
+      // Free the C string allocated with strdup in C++
+      final freeFunc = _dylib.lookupFunction<Void Function(Pointer<Char>), void Function(Pointer<Char>)>('te_free_string');
+      freeFunc(payload);
+      
       try {
         final Map<String, dynamic> data = jsonDecode(jsonStr);
         if (data.containsKey('status')) {
@@ -172,7 +177,8 @@ class TorrentSession {
     await TorrentEngine.initialize();
     
     // We run the creation in a short-lived isolate to avoid blocking the main UI thread.
-    return await Isolate.run(() {
+    // Return only the integer address to avoid SendPort/ReceivePort issues across isolates.
+    final address = await Isolate.run(() {
       Pointer<Char> configPtr = nullptr;
       if (configJson != null) {
         configPtr = configJson.toNativeUtf8().cast<Char>();
@@ -187,8 +193,11 @@ class TorrentSession {
       if (ptr == nullptr) {
         throw Exception('Failed to create libtorrent session');
       }
-      return TorrentSession._(ptr);
+      return ptr.address;
     });
+
+    final ptr = Pointer<te_session_t>.fromAddress(address);
+    return TorrentSession._(ptr);
   }
 
   Stream<TorrentAlert> get alerts => _alertController.stream;
@@ -202,19 +211,26 @@ class TorrentSession {
   }
 
   Future<TorrentHandle> addMagnet(String uri, {required String savePath}) async {
-    final uriPtr = uri.toNativeUtf8();
-    final savePathPtr = savePath.toNativeUtf8();
+    final sessionAddress = _sessionPtr.address;
     
-    final handlePtr = await Isolate.run(() {
-      return _bindings.te_add_magnet(
-        _sessionPtr,
+    final handleAddress = await Isolate.run(() {
+      final sessionPtr = Pointer<te_session_t>.fromAddress(sessionAddress);
+      final uriPtr = uri.toNativeUtf8();
+      final savePathPtr = savePath.toNativeUtf8();
+      
+      final ptr = _bindings.te_add_magnet(
+        sessionPtr,
         uriPtr.cast<Char>(),
         savePathPtr.cast<Char>(),
       );
+      
+      malloc.free(uriPtr);
+      malloc.free(savePathPtr);
+      
+      return ptr.address;
     });
     
-    malloc.free(uriPtr);
-    malloc.free(savePathPtr);
+    final handlePtr = Pointer<te_torrent_handle_t>.fromAddress(handleAddress);
     
     if (handlePtr == nullptr) {
       throw Exception('Failed to add magnet link');
@@ -224,23 +240,31 @@ class TorrentSession {
   }
 
   Future<TorrentHandle> addTorrentFile(Uint8List bytes, {required String savePath}) async {
-    final Pointer<Uint8> dataPtr = malloc.allocate<Uint8>(bytes.length);
-    final dataList = dataPtr.asTypedList(bytes.length);
-    dataList.setAll(0, bytes);
+    final sessionAddress = _sessionPtr.address;
     
-    final savePathPtr = savePath.toNativeUtf8();
-    
-    final handlePtr = await Isolate.run(() {
-      return _bindings.te_add_torrent_file(
-        _sessionPtr,
+    final handleAddress = await Isolate.run(() {
+      final sessionPtr = Pointer<te_session_t>.fromAddress(sessionAddress);
+      
+      final Pointer<Uint8> dataPtr = malloc.allocate<Uint8>(bytes.length);
+      final dataList = dataPtr.asTypedList(bytes.length);
+      dataList.setAll(0, bytes);
+      
+      final savePathPtr = savePath.toNativeUtf8();
+      
+      final ptr = _bindings.te_add_torrent_file(
+        sessionPtr,
         dataPtr,
         bytes.length,
         savePathPtr.cast<Char>(),
       );
+      
+      malloc.free(dataPtr);
+      malloc.free(savePathPtr);
+      
+      return ptr.address;
     });
     
-    malloc.free(dataPtr);
-    malloc.free(savePathPtr);
+    final handlePtr = Pointer<te_torrent_handle_t>.fromAddress(handleAddress);
     
     if (handlePtr == nullptr) {
       throw Exception('Failed to add torrent file');

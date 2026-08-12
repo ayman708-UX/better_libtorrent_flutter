@@ -35,7 +35,10 @@ cd third_party/openssl
 # Extra flags for specific platforms
 EXTRA_FLAGS=""
 if [[ "$TARGET" == android-* ]]; then
-  EXTRA_FLAGS="-D__ANDROID_API__=24"
+  EXTRA_FLAGS="-D__ANDROID_API__=24 -fPIC"
+  if [[ "$TARGET" == "android-arm" ]]; then
+    EXTRA_FLAGS="$EXTRA_FLAGS no-asm"
+  fi
 elif [[ "$TARGET" == linux-* ]]; then
   EXTRA_FLAGS="-fPIC"
   if [[ "$TARGET" == "linux-aarch64" ]]; then

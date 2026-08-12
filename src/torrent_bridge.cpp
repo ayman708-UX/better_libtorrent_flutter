@@ -145,10 +145,18 @@ static void alert_pump_loop(te_session_t* s) {
             json << "}";
             std::string payload = json.str();
 
+#ifdef _WIN32
+            char* payload_ptr = _strdup(payload.c_str());
+#else
+            char* payload_ptr = strdup(payload.c_str());
+#endif
+
             // Invoke Dart callback
             std::lock_guard<std::mutex> lk(s->cb_mu);
             if (s->dart_callback) {
-                s->dart_callback(a->type(), payload.c_str(), s->dart_user_data);
+                s->dart_callback(a->type(), payload_ptr, s->dart_user_data);
+            } else {
+                free(payload_ptr);
             }
         }
     }
@@ -309,4 +317,8 @@ void te_torrent_set_piece_deadline(te_torrent_handle_t* h, int piece_index, int 
         h->handle.set_piece_deadline(libtorrent::piece_index_t(piece_index), deadline, 
                                      static_cast<libtorrent::deadline_flags_t>(flags));
     }
+}
+
+void te_free_string(char* str) {
+    if (str) free(str);
 }
