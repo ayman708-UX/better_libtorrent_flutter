@@ -29,6 +29,16 @@ A new Flutter FFI plugin project.
   s.dependency 'FlutterMacOS'
 
   s.platform = :osx, '10.11'
+  
+  # Fetch prebuilt artifacts if not building from source
+  s.prepare_command = <<-CMD
+    if [ -z "$TORRENT_ENGINE_BUILD_FROM_SOURCE" ]; then
+      sh ../scripts/fetch_binaries.sh macos
+    fi
+  CMD
+
+  s.vendored_frameworks = 'TorrentEngineMac.xcframework'
+  
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
 end

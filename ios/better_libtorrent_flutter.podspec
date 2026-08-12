@@ -21,6 +21,15 @@ A new Flutter FFI plugin project.
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
+  
+  # Fetch prebuilt artifacts if not building from source
+  s.prepare_command = <<-CMD
+    if [ -z "$TORRENT_ENGINE_BUILD_FROM_SOURCE" ]; then
+      sh ../scripts/fetch_binaries.sh ios
+    fi
+  CMD
+
+  s.vendored_frameworks = 'TorrentEngine.xcframework'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

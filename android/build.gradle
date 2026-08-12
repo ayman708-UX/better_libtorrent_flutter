@@ -52,6 +52,35 @@ android {
                 // version "3.10.2"
             }
         }
+    } else {
+        // Download prebuilt artifact
+        task downloadNativeLibs {
+            doLast {
+                def version = "0.0.1"
+                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.2/torrent_engine-android.zip"
+                def zipFile = new File(project.buildDir, "torrent_engine-android.zip")
+                def extractDir = new File(project.projectDir, "src/main/jniLibs")
+
+                if (!new File(extractDir, "armeabi-v7a/libtorrent_engine.so").exists()) {
+                    println "Downloading prebuilt Android binaries from ${prebuiltUrl}..."
+                    zipFile.parentFile.mkdirs()
+                    new URL(zipUrl).withInputStream { i -> zipFile.withOutputStream { it << i } }
+
+                    println "Extracting to ${extractDir}..."
+                    copy {
+                        from zipTree(zipFile)
+                        into extractDir
+                    }
+                    
+                    // The zip contains folders like engine-android-android-arm, engine-android-android-arm64, etc.
+                    // We need to rename them to Android ABI folder names.
+                    file("${extractDir}/engine-android-android-arm").renameTo(file("${extractDir}/armeabi-v7a"))
+                    file("${extractDir}/engine-android-android-arm64").renameTo(file("${extractDir}/arm64-v8a"))
+                    file("${extractDir}/engine-android-android-x86_64").renameTo(file("${extractDir}/x86_64"))
+                }
+            }
+        }
+        preBuild.dependsOn(downloadNativeLibs)
     }
 
     compileOptions {

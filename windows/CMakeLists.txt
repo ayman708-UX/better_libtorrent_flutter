@@ -8,16 +8,32 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "better_libtorrent_flutter")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
-# Invoke the build for native code shared with the other target platforms.
-# This can be changed to accommodate different builds.
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
+# If buildFromSource is defined, build from source
+if(DEFINED ENV{TORRENT_ENGINE_BUILD_FROM_SOURCE})
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
+  set(better_libtorrent_flutter_bundled_libraries
+    $<TARGET_FILE:better_libtorrent_flutter>
+    PARENT_SCOPE
+  )
+else()
+  set(PREBUILT_URL "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.2/torrent_engine-windows.zip")
+  set(ZIP_PATH "${CMAKE_CURRENT_BINARY_DIR}/torrent_engine-windows.zip")
+  set(EXTRACT_DIR "${CMAKE_CURRENT_BINARY_DIR}/prebuilt")
 
-# List of absolute paths to libraries that should be bundled with the plugin.
-# This list could contain prebuilt libraries, or libraries created by an
-# external build triggered from this build file.
-set(better_libtorrent_flutter_bundled_libraries
-  # Defined in ../src/CMakeLists.txt.
-  # This can be changed to accommodate different builds.
-  $<TARGET_FILE:better_libtorrent_flutter>
-  PARENT_SCOPE
-)
+  if(NOT EXISTS "${EXTRACT_DIR}/engine-windows-VC-WIN64A/torrent_engine.dll")
+    message(STATUS "Downloading prebuilt Windows binaries from ${PREBUILT_URL}")
+    file(DOWNLOAD "${PREBUILT_URL}" "${ZIP_PATH}" STATUS DOWNLOAD_STATUS)
+    list(GET DOWNLOAD_STATUS 0 DOWNLOAD_CODE)
+    if(NOT DOWNLOAD_CODE EQUAL 0)
+      message(FATAL_ERROR "Failed to download prebuilt binaries: ${DOWNLOAD_STATUS}")
+    endif()
+    
+    file(ARCHIVE_EXTRACT INPUT "${ZIP_PATH}" DESTINATION "${EXTRACT_DIR}")
+  endif()
+
+  # Provide the DLL to Flutter
+  set(better_libtorrent_flutter_bundled_libraries
+    "${EXTRACT_DIR}/engine-windows-VC-WIN64A/torrent_engine.dll"
+    PARENT_SCOPE
+  )
+endif()

@@ -44,6 +44,7 @@ target_compile_definitions(torrent_engine PRIVATE
     BOOST_ASIO_DISABLE_CONCEPTS
     TORRENT_USE_OPENSSL
     TORRENT_DISABLE_ENCRYPTION=OFF
+    TORRENT_BRIDGE_EXPORTS
 )
 
 # Resolve libraries based on platform naming conventions
