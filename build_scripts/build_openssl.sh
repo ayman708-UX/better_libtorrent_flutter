@@ -27,6 +27,7 @@ if [[ -z "$TARGET" || -z "$OUTPUT" ]]; then
 fi
 
 # Ensure absolute output path
+mkdir -p "$OUTPUT"
 OUTPUT=$(realpath "$OUTPUT")
 
 cd third_party/openssl

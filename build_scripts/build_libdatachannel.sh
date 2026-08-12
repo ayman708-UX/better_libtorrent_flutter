@@ -27,6 +27,7 @@ if [[ -z "$TARGET" || -z "$OUTPUT" ]]; then
 fi
 
 # Ensure absolute paths
+mkdir -p "$OUTPUT"
 OUTPUT=$(realpath "$OUTPUT")
 
 OPENSSL_ROOT="$OUTPUT"
