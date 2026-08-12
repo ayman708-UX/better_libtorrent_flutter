@@ -42,7 +42,14 @@ if [[ "$TARGET" == android-* ]]; then
   if [[ "$TARGET" == "android-arm" ]]; then ABI="armeabi-v7a"; fi
   if [[ "$TARGET" == "android-x86_64" ]]; then ABI="x86_64"; fi
   
-  CMAKE_SYSTEM_ARGS=("-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake" "-DANDROID_ABI=${ABI}" "-DANDROID_PLATFORM=android-24" "-GNinja")
+  CMAKE_SYSTEM_ARGS=(
+    "-DCMAKE_SYSTEM_NAME=Android" 
+    "-DCMAKE_ANDROID_NDK=${ANDROID_NDK_ROOT}" 
+    "-DCMAKE_ANDROID_ARCH_ABI=${ABI}" 
+    "-DCMAKE_ANDROID_STL_TYPE=c++_shared" 
+    "-DCMAKE_SYSTEM_VERSION=24" 
+    "-GNinja"
+  )
 elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
   CMAKE_SYSTEM_ARGS=("-DCMAKE_SYSTEM_NAME=iOS" "-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" "-DENABLE_BITCODE=OFF" "-DENABLE_ARC=ON")
   if [[ "$TARGET" == *"simulator"* ]]; then
@@ -54,6 +61,13 @@ elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
     fi
   else
     CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_SYSROOT=iphoneos" "-DCMAKE_OSX_ARCHITECTURES=arm64")
+  fi
+elif [[ "$TARGET" == darwin64-* ]]; then
+  CMAKE_SYSTEM_ARGS=("-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15")
+  if [[ "$TARGET" == *"arm64"* ]]; then
+    CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=arm64")
+  elif [[ "$TARGET" == *"x86_64"* ]]; then
+    CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=x86_64")
   fi
 elif [[ "$TARGET" == "linux-aarch64" ]]; then
   CMAKE_SYSTEM_ARGS=("-DCMAKE_SYSTEM_NAME=Linux" "-DCMAKE_SYSTEM_PROCESSOR=aarch64" "-DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc" "-DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++")
