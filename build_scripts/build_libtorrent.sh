@@ -68,6 +68,7 @@ cmake -B build/libtorrent -S third_party/libtorrent \
   -DCMAKE_POLICY_DEFAULT_CMP0144=NEW \
   -DCMAKE_POLICY_DEFAULT_CMP0167=OLD \
   -DBOOST_ROOT="$PWD/third_party/boost" \
+  -DBoost_INCLUDE_DIR="$PWD/third_party/boost" \
   -DOPENSSL_ROOT_DIR="$DEPS" \
   -DCMAKE_FIND_ROOT_PATH="$DEPS" \
   -DOPENSSL_USE_STATIC_LIBS=ON \
