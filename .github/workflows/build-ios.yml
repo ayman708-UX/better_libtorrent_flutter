@@ -1,0 +1,26 @@
+name: Build iOS Deps
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-ios-deps:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [ios64-cross-arm64, iossimulator-xcrun-arm64, iossimulator-xcrun-x86_64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build OpenSSL
+        run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/ios/${{ matrix.target }}
+      - name: Build libdatachannel
+        run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/ios/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deps-ios-${{ matrix.target }}
+          path: out/ios/${{ matrix.target }}

@@ -1,0 +1,26 @@
+name: Build macOS Deps
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-macos-deps:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [darwin64-arm64-cc, darwin64-x86_64-cc]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build OpenSSL
+        run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/macos/${{ matrix.target }}
+      - name: Build libdatachannel
+        run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/macos/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deps-macos-${{ matrix.target }}
+          path: out/macos/${{ matrix.target }}
