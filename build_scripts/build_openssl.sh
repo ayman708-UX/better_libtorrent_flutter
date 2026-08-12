@@ -58,11 +58,11 @@ if [[ "$TARGET" == "VC-WIN64A" ]]; then
   elif command -v perl.exe >/dev/null 2>&1; then
     PERL_CMD="perl.exe"
   fi
-  "$PERL_CMD" Configure $TARGET no-shared no-tests no-apps --prefix="$OUTPUT"
+  "$PERL_CMD" Configure $TARGET no-shared no-module no-tests no-apps --prefix="$OUTPUT"
   nmake
   nmake install_sw
 else
-  ./Configure $TARGET $EXTRA_FLAGS no-shared no-tests no-apps --prefix="$OUTPUT" --openssldir="$OUTPUT/ssl"
+  ./Configure $TARGET $EXTRA_FLAGS no-shared no-module no-tests no-apps --prefix="$OUTPUT" --openssldir="$OUTPUT/ssl"
   make -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu || echo 2)"
   make install_sw
 fi
