@@ -1,0 +1,226 @@
+name: Build and Release Native Artifacts
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  # ─── Android ─────────────────────────────────────────────────────────────
+  build-android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [android-arm64, android-arm, android-x86_64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r27b
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Build OpenSSL
+        run: |
+          export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
+          export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+          bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/android/${{ matrix.target }}
+      - name: Build libdatachannel
+        run: |
+          export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
+          bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/android/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        run: |
+          export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
+          bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/android/${{ matrix.target }} --output=$PWD/out/final/android/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-android-${{ matrix.target }}
+          path: out/final/android/${{ matrix.target }}
+
+  # ─── iOS ─────────────────────────────────────────────────────────────────
+  build-ios:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [iossimulator-xcrun-x86_64, iossimulator-xcrun-arm64, ios64-cross-arm64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build OpenSSL
+        run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/ios/${{ matrix.target }}
+      - name: Build libdatachannel
+        run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/ios/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        run: bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/ios/${{ matrix.target }} --output=$PWD/out/final/ios/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-ios-${{ matrix.target }}
+          path: out/final/ios/${{ matrix.target }}
+
+  package-ios:
+    needs: build-ios
+    runs-on: macos-latest
+    steps:
+      - name: Download all iOS engine artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: engine-ios-*
+          path: out/
+      - name: Create XCFramework
+        run: |
+          lipo -create out/engine-ios-iossimulator-xcrun-arm64/bin/libtorrent_engine.a out/engine-ios-iossimulator-xcrun-x86_64/bin/libtorrent_engine.a -output libtorrent_engine_sim.a
+          xcodebuild -create-xcframework \
+            -library out/engine-ios-ios64-cross-arm64/bin/libtorrent_engine.a \
+            -library libtorrent_engine_sim.a \
+            -output TorrentEngine.xcframework
+      - name: Upload iOS XCFramework
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-ios
+          path: TorrentEngine.xcframework
+
+  # ─── macOS ───────────────────────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [darwin64-arm64-cc, darwin64-x86_64-cc]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build OpenSSL
+        run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/macos/${{ matrix.target }}
+      - name: Build libdatachannel
+        run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/macos/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        run: bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/macos/${{ matrix.target }} --output=$PWD/out/final/macos/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-macos-${{ matrix.target }}
+          path: out/final/macos/${{ matrix.target }}
+
+  package-macos:
+    needs: build-macos
+    runs-on: macos-latest
+    steps:
+      - name: Download all macOS engine artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: engine-macos-*
+          path: out/
+      - name: Create macOS XCFramework
+        run: |
+          lipo -create out/engine-macos-darwin64-arm64-cc/bin/libtorrent_engine.a out/engine-macos-darwin64-x86_64-cc/bin/libtorrent_engine.a -output libtorrent_engine_mac.a
+          xcodebuild -create-xcframework \
+            -library libtorrent_engine_mac.a \
+            -output TorrentEngineMac.xcframework
+      - name: Upload macOS XCFramework
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-macos
+          path: TorrentEngineMac.xcframework
+
+  # ─── Windows ─────────────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [VC-WIN64A]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Set up NASM
+        uses: ilammy/setup-nasm@v1
+      - name: Build OpenSSL
+        shell: bash
+        run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/windows/${{ matrix.target }}
+      - name: Build libdatachannel
+        shell: bash
+        run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/windows/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        shell: bash
+        run: bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/windows/${{ matrix.target }} --output=$PWD/out/final/windows/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-windows-${{ matrix.target }}
+          path: out/final/windows/${{ matrix.target }}
+
+  # ─── Linux ───────────────────────────────────────────────────────────────
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [linux-x86_64, linux-aarch64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build OpenSSL
+        run: bash build_scripts/build_openssl.sh --target=${{ matrix.target }} --output=$PWD/out/linux/${{ matrix.target }}
+      - name: Build libdatachannel
+        run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/linux/${{ matrix.target }}
+      - name: Build libtorrent and Engine
+        run: bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/linux/${{ matrix.target }} --output=$PWD/out/final/linux/${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-linux-${{ matrix.target }}
+          path: out/final/linux/${{ matrix.target }}
+
+  # ─── Publish Release ─────────────────────────────────────────────────────
+  publish-release:
+    needs: [build-android, package-ios, package-macos, build-windows, build-linux]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Package Release Zips
+        run: |
+          mkdir -p release_out
+          cd artifacts
+          
+          # Android
+          zip -r ../release_out/torrent_engine-android.zip engine-android-*
+          
+          # iOS
+          zip -r ../release_out/torrent_engine-ios.zip final-ios/TorrentEngine.xcframework
+          
+          # macOS
+          zip -r ../release_out/torrent_engine-macos.zip final-macos/TorrentEngineMac.xcframework
+          
+          # Windows
+          zip -r ../release_out/torrent_engine-windows.zip engine-windows-*
+          
+          # Linux
+          zip -r ../release_out/torrent_engine-linux.zip engine-linux-*
+          
+          cd ../release_out
+          sha256sum *.zip > checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release_out/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
