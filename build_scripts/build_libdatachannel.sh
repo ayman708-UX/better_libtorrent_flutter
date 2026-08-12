@@ -81,6 +81,7 @@ cmake -B build/libdatachannel -S third_party/libdatachannel \
   -DOPENSSL_SSL_LIBRARY="$SSL_LIB" \
   -DOPENSSL_USE_STATIC_LIBS=ON \
   -DCMAKE_INSTALL_PREFIX="$OUTPUT" \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   $CMAKE_SYSTEM_ARGS
 
 cmake --build build/libdatachannel --config Release -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu || echo 2)"
