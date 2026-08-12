@@ -48,7 +48,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        target: [iossimulator-xcrun-x86_64, iossimulator-xcrun-arm64, ios64-cross-arm64]
+        target: [iossimulator-xcrun-x86_64, iossimulator-xcrun-arm64, ios64-cross]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,7 +78,7 @@ jobs:
         run: |
           lipo -create out/engine-ios-iossimulator-xcrun-arm64/bin/libtorrent_engine.a out/engine-ios-iossimulator-xcrun-x86_64/bin/libtorrent_engine.a -output libtorrent_engine_sim.a
           xcodebuild -create-xcframework \
-            -library out/engine-ios-ios64-cross-arm64/bin/libtorrent_engine.a \
+            -library out/engine-ios-ios64-cross/bin/libtorrent_engine.a \
             -library libtorrent_engine_sim.a \
             -output TorrentEngine.xcframework
       - name: Upload iOS XCFramework
