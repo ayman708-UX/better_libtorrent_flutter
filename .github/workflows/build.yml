@@ -232,10 +232,12 @@ jobs:
           zip -r ../release_out/torrent_engine-android.zip engine-android-*
           
           # iOS
-          zip -r ../release_out/torrent_engine-ios.zip final-ios/TorrentEngine.xcframework
+          mv final-ios TorrentEngine.xcframework
+          zip -r ../release_out/torrent_engine-ios.zip TorrentEngine.xcframework
           
           # macOS
-          zip -r ../release_out/torrent_engine-macos.zip final-macos/TorrentEngineMac.xcframework
+          mv final-macos TorrentEngineMac.xcframework
+          zip -r ../release_out/torrent_engine-macos.zip TorrentEngineMac.xcframework
           
           # Windows
           zip -r ../release_out/torrent_engine-windows.zip engine-windows-*
