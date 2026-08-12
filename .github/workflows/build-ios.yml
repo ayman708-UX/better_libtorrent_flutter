@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        target: [ios64-cross-arm64, iossimulator-xcrun-arm64, iossimulator-xcrun-x86_64]
+        target: [ios64-xcrun, iossimulator-arm64-xcrun, iossimulator-x86_64-xcrun]
     steps:
       - uses: actions/checkout@v4
         with:
