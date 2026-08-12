@@ -36,28 +36,28 @@ if [[ ! -d "$OPENSSL_ROOT/lib" && ! -d "$OPENSSL_ROOT/lib64" ]]; then
   exit 1
 fi
 
-CMAKE_SYSTEM_ARGS=""
+CMAKE_SYSTEM_ARGS=()
 if [[ "$TARGET" == android-* ]]; then
   if [[ "$TARGET" == "android-arm64" ]]; then ABI="arm64-v8a"; fi
   if [[ "$TARGET" == "android-arm" ]]; then ABI="armeabi-v7a"; fi
   if [[ "$TARGET" == "android-x86_64" ]]; then ABI="x86_64"; fi
   
   # Android Toolchain is passed from GitHub Actions via env var
-  CMAKE_SYSTEM_ARGS="-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake -DANDROID_ABI=${ABI} -DANDROID_PLATFORM=android-24 -GNinja"
+  CMAKE_SYSTEM_ARGS=("-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake" "-DANDROID_ABI=${ABI}" "-DANDROID_PLATFORM=android-24" "-GNinja")
 elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
-  CMAKE_SYSTEM_ARGS="-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 -DENABLE_BITCODE=OFF -DENABLE_ARC=ON"
+  CMAKE_SYSTEM_ARGS=("-DCMAKE_SYSTEM_NAME=iOS" "-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" "-DENABLE_BITCODE=OFF" "-DENABLE_ARC=ON")
   if [[ "$TARGET" == *"simulator"* ]]; then
-    CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_SYSROOT=iphonesimulator"
+    CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_SYSROOT=iphonesimulator")
     if [[ "$TARGET" == *"x86_64"* ]]; then
-      CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_ARCHITECTURES=x86_64"
+      CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=x86_64")
     else
-      CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_ARCHITECTURES=arm64"
+      CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=arm64")
     fi
   else
-    CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64"
+    CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_SYSROOT=iphoneos" "-DCMAKE_OSX_ARCHITECTURES=arm64")
   fi
 elif [[ "$TARGET" == "VC-WIN64A" ]]; then
-  CMAKE_SYSTEM_ARGS="-G \"Visual Studio 17 2022\" -A x64 -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
+  CMAKE_SYSTEM_ARGS=("-G" "Visual Studio 17 2022" "-A" "x64" "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
 fi
 
 OPENSSL_LIB_DIR="$OPENSSL_ROOT/lib"
@@ -84,7 +84,7 @@ cmake -B build/libdatachannel -S third_party/libdatachannel \
   -DOPENSSL_USE_STATIC_LIBS=ON \
   -DCMAKE_INSTALL_PREFIX="$OUTPUT" \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-  $CMAKE_SYSTEM_ARGS
+  "${CMAKE_SYSTEM_ARGS[@]}"
 
 cmake --build build/libdatachannel --config Release -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu || echo 2)"
 cmake --install build/libdatachannel --config Release
