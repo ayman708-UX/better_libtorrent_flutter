@@ -166,11 +166,11 @@ jobs:
         shell: bash
         run: bash build_scripts/build_libdatachannel.sh --target=${{ matrix.target }} --output=$PWD/out/windows/${{ matrix.target }}
       - name: Setup Boost Headers
-        shell: bash
+        shell: cmd
         run: |
-          cd third_party/boost
-          cmd.exe /c "bootstrap.bat"
-          ./b2.exe headers
+          cd third_party\boost
+          call bootstrap.bat
+          b2.exe headers
       - name: Build libtorrent and Engine
         run: bash build_scripts/build_libtorrent.sh --target=${{ matrix.target }} --deps=$PWD/out/windows/${{ matrix.target }} --output=$PWD/out/final/windows/${{ matrix.target }}
       - name: Upload Artifact

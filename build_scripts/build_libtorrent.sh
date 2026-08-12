@@ -50,6 +50,9 @@ if [[ "$TARGET" == android-* ]]; then
     "-DCMAKE_SYSTEM_VERSION=24" 
     "-GNinja"
   )
+  if [[ "$ABI" == "armeabi-v7a" ]]; then
+    CMAKE_SYSTEM_ARGS+=("-DCMAKE_CXX_FLAGS=-DBOOST_ALL_NO_EMBEDDED_GDB_SCRIPTS")
+  fi
 elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
   CMAKE_SYSTEM_ARGS=("-DCMAKE_SYSTEM_NAME=iOS" "-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" "-DENABLE_BITCODE=OFF" "-DENABLE_ARC=ON")
   if [[ "$TARGET" == *"simulator"* ]]; then
