@@ -45,15 +45,17 @@ if [[ "$TARGET" == android-* ]]; then
   # Android Toolchain is passed from GitHub Actions via env var
   CMAKE_SYSTEM_ARGS="-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake -DANDROID_ABI=${ABI} -DANDROID_PLATFORM=android-24 -GNinja"
 elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
-  # iOS Toolchain passed via env var or assumed from Xcode
-  PLATFORM="OS64"
+  CMAKE_SYSTEM_ARGS="-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 -DENABLE_BITCODE=OFF -DENABLE_ARC=ON"
   if [[ "$TARGET" == *"simulator"* ]]; then
-    PLATFORM="SIMULATORARM64"
+    CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_SYSROOT=iphonesimulator"
     if [[ "$TARGET" == *"x86_64"* ]]; then
-      PLATFORM="SIMULATOR64"
+      CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_ARCHITECTURES=x86_64"
+    else
+      CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_ARCHITECTURES=arm64"
     fi
+  else
+    CMAKE_SYSTEM_ARGS="$CMAKE_SYSTEM_ARGS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64"
   fi
-  CMAKE_SYSTEM_ARGS="-DCMAKE_TOOLCHAIN_FILE=${PWD}/third_party/ios-cmake/ios.toolchain.cmake -DPLATFORM=${PLATFORM} -DDEPLOYMENT_TARGET=13.0 -DENABLE_BITCODE=OFF -DENABLE_ARC=ON"
 elif [[ "$TARGET" == "VC-WIN64A" ]]; then
   CMAKE_SYSTEM_ARGS="-G \"Visual Studio 17 2022\" -A x64 -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
 fi

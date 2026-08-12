@@ -50,7 +50,15 @@ if [[ -f Makefile ]]; then
 fi
 
 if [[ "$TARGET" == "VC-WIN64A" ]]; then
-  perl Configure $TARGET no-shared no-tests no-apps --prefix="$OUTPUT"
+  PERL_CMD="perl"
+  if [[ -f "/c/Strawberry/perl/bin/perl.exe" ]]; then
+    PERL_CMD="/c/Strawberry/perl/bin/perl.exe"
+  elif [[ -f "C:/Strawberry/perl/bin/perl.exe" ]]; then
+    PERL_CMD="C:/Strawberry/perl/bin/perl.exe"
+  elif command -v perl.exe >/dev/null 2>&1; then
+    PERL_CMD="perl.exe"
+  fi
+  "$PERL_CMD" Configure $TARGET no-shared no-tests no-apps --prefix="$OUTPUT"
   nmake
   nmake install_sw
 else
