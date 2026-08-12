@@ -57,7 +57,7 @@ elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
     CMAKE_SYSTEM_ARGS+=("-DCMAKE_OSX_SYSROOT=iphoneos" "-DCMAKE_OSX_ARCHITECTURES=arm64")
   fi
 elif [[ "$TARGET" == "VC-WIN64A" ]]; then
-  CMAKE_SYSTEM_ARGS=("-G" "Visual Studio 17 2022" "-A" "x64" "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
+  CMAKE_SYSTEM_ARGS=("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
 fi
 
 OPENSSL_LIB_DIR="$OPENSSL_ROOT/lib"
@@ -84,7 +84,7 @@ cmake -B build/libdatachannel -S third_party/libdatachannel \
   -DOPENSSL_USE_STATIC_LIBS=ON \
   -DCMAKE_INSTALL_PREFIX="$OUTPUT" \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-  "${CMAKE_SYSTEM_ARGS[@]}"
+  ${CMAKE_SYSTEM_ARGS[@]:+"${CMAKE_SYSTEM_ARGS[@]}"}
 
 cmake --build build/libdatachannel --config Release -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu || echo 2)"
 cmake --install build/libdatachannel --config Release
