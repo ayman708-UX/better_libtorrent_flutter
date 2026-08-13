@@ -1,92 +1,132 @@
 # better_libtorrent_flutter
 
-A new Flutter FFI plugin project.
+A high-performance Flutter Dart FFI plugin wrapping **libtorrent v2.1.1**. Works cross-platform across Windows, macOS, Linux, Android, and iOS.
 
-## Getting Started
+Supports **WebTorrent** (`-Dwebtorrent=ON`), magnet links, `.torrent` files, file inspection, priority selection, sequential downloads, and piece deadlines for building **custom streaming engines with seek support**.
 
-This project is a starting point for a Flutter
-[FFI plugin](https://flutter.dev/to/ffi-package),
-a specialized package that includes native code directly invoked with Dart FFI.
+---
 
-## Project structure
+## Features
 
-This template uses the following structure:
+- **High-Performance FFI Bridge**: Direct native bindings to C++ libtorrent 2.1.1 without method channel overhead.
+- **WebTorrent Support**: Built with `-Dwebtorrent=ON` for WebTorrent/WebSocket peer discovery.
+- **Streaming Primitives**: Exposes `setPieceDeadline`, `clearPieceDeadlines`, `readPiece`, `havePiece`, and sequential mode for video/audio streaming with seeking.
+- **File Management**: Inspect multi-file torrent contents, file sizes, and set individual file download priorities (skip, low, normal, high).
+- **Session Configuration**: Configure download/upload rate limits, max connections, listen interfaces, DHT, proxies, and encryption policies.
+- **Alert Stream**: Type-safe Dart event stream for status updates, metadata arrival, download progress, completed files, resume data, and errors.
+- **Cross-Platform**: Pre-configured build systems for Windows, macOS, Linux, Android (NDK), and iOS.
 
-* `src`: Contains the native source code, and a CmakeFile.txt file for building
-  that source code into a dynamic library.
+---
 
-* `lib`: Contains the Dart code that defines the API of the plugin, and which
-  calls into the native code using `dart:ffi`.
+## Installation
 
-* platform folders (`android`, `ios`, `windows`, etc.): Contains the build files
-  for building and bundling the native code library with the platform application.
-
-## Building and bundling native code
-
-The `pubspec.yaml` specifies FFI plugins as follows:
+Add `better_libtorrent_flutter` to your `pubspec.yaml`:
 
 ```yaml
-  plugin:
-    platforms:
-      some_platform:
-        ffiPlugin: true
+dependencies:
+  better_libtorrent_flutter: ^0.0.1
 ```
 
-This configuration invokes the native build for the various target platforms
-and bundles the binaries in Flutter applications using these FFI plugins.
+---
 
-This can be combined with dartPluginClass, such as when FFI is used for the
-implementation of one platform in a federated plugin:
+## Usage
 
-```yaml
-  plugin:
-    implements: some_other_plugin
-    platforms:
-      some_platform:
-        dartPluginClass: SomeClass
-        ffiPlugin: true
+### 1. Create a Session & Add Magnet Link
+
+```dart
+import 'package:better_libtorrent_flutter/torrent_engine.dart';
+
+void main() async {
+  // Create a libtorrent session
+  final session = await TorrentSession.create();
+
+  // Listen to alerts (progress, metadata, completion, errors)
+  session.alerts.listen((alert) {
+    if (alert is TorrentStateUpdate) {
+      for (var status in alert.status) {
+        print('${status.name}: ${(status.progress * 100).toStringAsFixed(1)}% @ ${status.downloadRate / 1024} KB/s');
+      }
+    } else if (alert is MetadataReceivedAlert) {
+      print('Metadata loaded for torrent!');
+    } else if (alert is TorrentFinishedAlert) {
+      print('Download complete!');
+    }
+  });
+
+  // Add magnet link
+  final handle = session.addMagnet(
+    'magnet:?xt=urn:btih:...',
+    savePath: '/path/to/downloads',
+  );
+}
 ```
 
-A plugin can have both FFI and method channels:
+---
 
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        pluginClass: SomeName
-        ffiPlugin: true
+### 2. Inspecting Files & Prioritization
+
+Once metadata is received, you can list all files inside the torrent and set download priorities:
+
+```dart
+// Get list of files
+List<TorrentFile> files = handle.getFiles();
+
+for (var file in files) {
+  print('[${file.index}] ${file.name} - ${file.size} bytes');
+}
+
+// Skip downloading file #0
+handle.setFilePriority(0, 0); // 0 = Skip
+
+// Prioritize file #1 for high priority
+handle.setFilePriority(1, 7); // 7 = Highest priority
 ```
 
-The native build systems that are invoked by FFI (and method channel) plugins are:
+---
 
-* For Android: Gradle, which invokes the Android NDK for native builds.
-  * See the documentation in android/build.gradle.
-* For iOS and MacOS: Xcode, via CocoaPods.
-  * See the documentation in ios/better_libtorrent_flutter.podspec.
-  * See the documentation in macos/better_libtorrent_flutter.podspec.
-* For Linux and Windows: CMake.
-  * See the documentation in linux/CMakeLists.txt.
-  * See the documentation in windows/CMakeLists.txt.
+### 3. Video / Audio Streaming & Seeking
 
-## Binding to native code
+To build a streaming engine (e.g., serving video to a local HTTP server):
 
-To use the native code, bindings in Dart are needed.
-To avoid writing these by hand, they are generated from the header file
-(`src/better_libtorrent_flutter.h`) by `package:ffigen`.
-Regenerate the bindings by running `dart run ffigen --config ffigen.yaml`.
+```dart
+// Enable sequential downloading (download pieces in order)
+handle.setSequentialDownload(true);
 
-## Invoking native code
+// Get piece metadata
+TorrentPieceInfo? pieceInfo = handle.getPieceInfo();
 
-Very short-running native functions can be directly invoked from any isolate.
-For example, see `sum` in `lib/better_libtorrent_flutter.dart`.
+// When the player seeks to a specific byte location, calculate the piece index:
+int targetPieceIndex = 42;
 
-Longer-running functions should be invoked on a helper isolate to avoid
-dropping frames in Flutter applications.
-For example, see `sumAsync` in `lib/better_libtorrent_flutter.dart`.
+// Clear previous deadlines and prioritize the new target piece
+handle.clearPieceDeadlines();
+handle.setPieceDeadline(targetPieceIndex, 500); // Need piece 42 within 500ms
 
-## Flutter help
+// Check if a piece is ready
+if (handle.havePiece(targetPieceIndex)) {
+  // Read the piece bytes asynchronously
+  handle.readPiece(targetPieceIndex);
+}
+```
 
-For help getting started with Flutter, view our
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Listen for `ReadPieceAlert` on `session.alerts` to retrieve the `Uint8List` buffer.
 
+---
+
+### 4. Configuring Session Settings
+
+```dart
+session.applySettings(SessionSettings(
+  downloadRateLimit: 5 * 1024 * 1024, // 5 MB/s
+  uploadRateLimit: 1 * 1024 * 1024,   // 1 MB/s
+  connectionsLimit: 200,
+  enableDht: true,
+  anonymousMode: false,
+));
+```
+
+---
+
+## License
+
+Licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See [LICENSE](LICENSE) for details.
