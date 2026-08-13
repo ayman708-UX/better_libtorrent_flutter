@@ -669,9 +669,10 @@ class TorrentSession {
 
   /// Dispose of this session. Must be called when done.
   void dispose() {
+    _bindings.te_session_set_alert_callback(_sessionPtr, nullptr, nullptr);
+    _bindings.te_session_destroy(_sessionPtr);
     _nativeCallable.close();
     _alertController.close();
-    _bindings.te_session_destroy(_sessionPtr);
   }
 }
 

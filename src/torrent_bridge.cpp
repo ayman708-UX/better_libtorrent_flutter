@@ -382,7 +382,13 @@ te_session_t* te_session_create(const char* config_json) {
         libtorrent::alert_category::file_progress |
         libtorrent::alert_category::tracker);
     
-    sp.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:6881,[::]:6881");
+    // Android-safe defaults: random unprivileged listen port & disable OpenSSL HTTPS CA verification
+    sp.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:0,[::]:0");
+    sp.set_bool(libtorrent::settings_pack::validate_https_trackers, false);
+    sp.set_bool(libtorrent::settings_pack::enable_dht, true);
+    sp.set_bool(libtorrent::settings_pack::enable_lsd, true);
+    sp.set_bool(libtorrent::settings_pack::enable_upnp, true);
+    sp.set_bool(libtorrent::settings_pack::enable_natpmp, true);
     
     // Parse config_json if provided
     if (config_json) {
@@ -413,6 +419,15 @@ te_session_t* te_session_create(const char* config_json) {
 
 void te_session_destroy(te_session_t* s) {
     if (s) {
+        {
+            std::lock_guard<std::mutex> lk(s->cb_mu);
+            s->dart_callback = nullptr;
+            s->dart_user_data = nullptr;
+        }
+        s->alert_running = false;
+        if (s->alert_thread.joinable()) {
+            s->alert_thread.join();
+        }
         delete s;
     }
 }
