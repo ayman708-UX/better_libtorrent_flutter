@@ -57,10 +57,10 @@ static std::string json_escape(const std::string& s) {
         else if (c == '\n') o << "\\n";
         else if (c == '\r') o << "\\r";
         else if (c == '\t') o << "\\t";
-        else if (c < 0x20) {
-            // skip control chars
+        else if (c >= 32 && c <= 126) {
+            o << c; // strictly allow only printable ASCII
         } else {
-            o << c;
+            o << "?"; // replace invalid/non-ascii with '?'
         }
     }
     return o.str();
