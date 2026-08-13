@@ -98,6 +98,9 @@ struct te_torrent_handle_t {
 // ---------------------------------------------------------
 static void alert_pump_loop(te_session_t* s) {
     while (s->alert_running.load()) {
+        // Request a state_update_alert to be posted
+        s->session->post_torrent_updates();
+
         if (!s->session->wait_for_alert(libtorrent::milliseconds(200))) {
             continue;
         }
