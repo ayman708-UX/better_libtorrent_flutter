@@ -177,6 +177,26 @@ class BetterLibtorrentFlutterBindings {
   late final _te_torrent_clear_piece_deadlines = _te_torrent_clear_piece_deadlinesPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
 
   // =========================================================
+  // Piece Prioritization (sliding window streaming)
+  // =========================================================
+
+  void te_torrent_set_piece_priority(ffi.Pointer<te_torrent_handle_t> h, int piece_index, int priority) => _te_torrent_set_piece_priority(h, piece_index, priority);
+  late final _te_torrent_set_piece_priorityPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32, ffi.Int32)>>('te_torrent_set_piece_priority');
+  late final _te_torrent_set_piece_priority = _te_torrent_set_piece_priorityPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int, int)>();
+
+  ffi.Pointer<ffi.Char> te_torrent_get_piece_priorities(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_piece_priorities(h);
+  late final _te_torrent_get_piece_prioritiesPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_piece_priorities');
+  late final _te_torrent_get_piece_priorities = _te_torrent_get_piece_prioritiesPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  void te_torrent_set_all_piece_priorities(ffi.Pointer<te_torrent_handle_t> h, ffi.Pointer<ffi.Int32> priorities, int count) => _te_torrent_set_all_piece_priorities(h, priorities, count);
+  late final _te_torrent_set_all_piece_prioritiesPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Pointer<ffi.Int32>, ffi.Int32)>>('te_torrent_set_all_piece_priorities');
+  late final _te_torrent_set_all_piece_priorities = _te_torrent_set_all_piece_prioritiesPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Pointer<ffi.Int32>, int)>();
+
+  int te_torrent_get_file_offset(ffi.Pointer<te_torrent_handle_t> h, int file_index) => _te_torrent_get_file_offset(h, file_index);
+  late final _te_torrent_get_file_offsetPtr = _lookup<ffi.NativeFunction<ffi.Int64 Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_get_file_offset');
+  late final _te_torrent_get_file_offset = _te_torrent_get_file_offsetPtr.asFunction<int Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  // =========================================================
   // File Prioritization
   // =========================================================
 

@@ -95,6 +95,14 @@ TORRENT_API void te_torrent_reset_piece_deadline(te_torrent_handle_t* h, int pie
 TORRENT_API void te_torrent_clear_piece_deadlines(te_torrent_handle_t* h);
 
 /* =========================================================
+ * Piece Prioritization (sliding window streaming)
+ * ========================================================= */
+TORRENT_API void te_torrent_set_piece_priority(te_torrent_handle_t* h, int piece_index, int priority);
+TORRENT_API char* te_torrent_get_piece_priorities(te_torrent_handle_t* h);
+TORRENT_API void te_torrent_set_all_piece_priorities(te_torrent_handle_t* h, const int* priorities, int count);
+TORRENT_API int64_t te_torrent_get_file_offset(te_torrent_handle_t* h, int file_index);
+
+/* =========================================================
  * File Prioritization
  * ========================================================= */
 TORRENT_API void te_torrent_set_file_priority(te_torrent_handle_t* h, int file_index, int priority);

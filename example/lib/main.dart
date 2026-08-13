@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -53,6 +54,8 @@ class _TorrentScreenState extends State<TorrentScreen> {
     _initEngine();
   }
 
+  Timer? _statusTimer;
+
   Future<void> _initEngine() async {
     try {
       _session = await TorrentSession.create();
@@ -60,6 +63,11 @@ class _TorrentScreenState extends State<TorrentScreen> {
       
       if (mounted) {
         setState(() => _initialized = true);
+        
+        // Start polling the UI to reflect getStatus()
+        _statusTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+          if (mounted) setState(() {});
+        });
       }
     } catch (e) {
       if (mounted) setState(() => _initError = e.toString());
@@ -338,13 +346,14 @@ class _TorrentScreenState extends State<TorrentScreen> {
                               itemCount: _handles.length,
                               itemBuilder: (context, index) {
                                 final handle = _handles[index];
-                                final statusList = _statuses.values.toList();
                                 
-                                if (index >= statusList.length) {
-                                  return const Card(margin: EdgeInsets.all(16), child: Padding(padding: EdgeInsets.all(16), child: Text('Connecting...')));
+                                TorrentStatus? status;
+                                try {
+                                  status = handle.getStatus();
+                                } catch (e) {
+                                  return Card(margin: const EdgeInsets.all(16), child: Padding(padding: const EdgeInsets.all(16), child: Text('Connecting... (or error: $e)')));
                                 }
 
-                                final status = statusList[index];
                                 return Card(
                                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   child: InkWell(
@@ -368,10 +377,10 @@ class _TorrentScreenState extends State<TorrentScreen> {
                                                   const PopupMenuItem(value: 'flush_cache', child: Text('Flush Cache')),
                                                   const PopupMenuItem(value: 'move_storage', child: Text('Move Storage (/tmp)')),
                                                   const PopupMenuDivider(),
-                                                  if (_savedResumeData.containsKey(status.id))
+                                                  if (_savedResumeData.containsKey(status!.id))
                                                     PopupMenuItem(
                                                       child: const Text('Add from Saved Resume Data', style: TextStyle(color: Colors.green)),
-                                                      onTap: () => Future.delayed(Duration.zero, () => _addFromResumeData(status.id)),
+                                                      onTap: () => Future.delayed(Duration.zero, () => _addFromResumeData(status!.id)),
                                                     ),
                                                   const PopupMenuDivider(),
                                                   const PopupMenuItem(value: 'remove_keep', child: Text('Remove (Keep files)')),
@@ -413,6 +422,7 @@ class _TorrentScreenState extends State<TorrentScreen> {
 
   @override
   void dispose() {
+    _statusTimer?.cancel();
     _session?.dispose();
     super.dispose();
   }

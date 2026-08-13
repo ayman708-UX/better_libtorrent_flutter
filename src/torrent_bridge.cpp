@@ -830,6 +830,50 @@ void te_torrent_clear_piece_deadlines(te_torrent_handle_t* h) {
 }
 
 // ---------------------------------------------------------
+// Piece Prioritization (for sliding window streaming)
+// ---------------------------------------------------------
+void te_torrent_set_piece_priority(te_torrent_handle_t* h, int piece_index, int priority) {
+    if (h && h->handle.is_valid()) {
+        h->handle.piece_priority(libtorrent::piece_index_t(piece_index),
+                                  libtorrent::download_priority_t(static_cast<uint8_t>(priority)));
+    }
+}
+
+char* te_torrent_get_piece_priorities(te_torrent_handle_t* h) {
+    if (!h || !h->handle.is_valid()) return alloc_string("[]");
+
+    auto prios = h->handle.get_piece_priorities();
+    std::ostringstream json;
+    json << "[";
+    for (size_t i = 0; i < prios.size(); ++i) {
+        if (i > 0) json << ",";
+        json << static_cast<int>(prios[i]);
+    }
+    json << "]";
+    return alloc_string(json.str());
+}
+
+void te_torrent_set_all_piece_priorities(te_torrent_handle_t* h, const int* priorities, int count) {
+    if (!h || !h->handle.is_valid() || !priorities || count <= 0) return;
+
+    std::vector<libtorrent::download_priority_t> prios;
+    prios.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        prios.push_back(libtorrent::download_priority_t(static_cast<uint8_t>(priorities[i])));
+    }
+    h->handle.prioritize_pieces(prios);
+}
+
+int64_t te_torrent_get_file_offset(te_torrent_handle_t* h, int file_index) {
+    if (!h || !h->handle.is_valid()) return -1;
+    auto ti = h->handle.torrent_file();
+    if (!ti) return -1;
+    auto const& fs = ti->files();
+    if (file_index < 0 || file_index >= fs.num_files()) return -1;
+    return fs.file_offset(libtorrent::file_index_t(file_index));
+}
+
+// ---------------------------------------------------------
 // File Prioritization
 // ---------------------------------------------------------
 void te_torrent_set_file_priority(te_torrent_handle_t* h, int file_index, int priority) {

@@ -775,6 +775,44 @@ class TorrentHandle {
 
   void clearPieceDeadlines() => _bindings.te_torrent_clear_piece_deadlines(_handlePtr);
 
+  // --- Piece Prioritization (sliding window streaming) ---
+
+  /// Set the download priority of a single piece.
+  /// Priority: 0 = don't download, 1 = low, 4 = normal, 7 = highest.
+  /// This is THE key API for sliding window streaming — it tells libtorrent
+  /// to completely skip downloading a piece (priority 0) vs deadlines which
+  /// only prioritize order.
+  void setPiecePriority(int pieceIndex, int priority) {
+    _bindings.te_torrent_set_piece_priority(_handlePtr, pieceIndex, priority);
+  }
+
+  /// Returns the current download priorities for all pieces as a list.
+  List<int> getPiecePriorities() {
+    final ptr = _bindings.te_torrent_get_piece_priorities(_handlePtr);
+    final jsonStr = _readAndFreeString(ptr);
+    final list = jsonDecode(jsonStr) as List;
+    return list.cast<int>();
+  }
+
+  /// Set download priorities for all pieces at once (fast bulk update for
+  /// window shifts). Each value: 0 = skip, 1 = low, 4 = normal, 7 = highest.
+  void setAllPiecePriorities(List<int> priorities) {
+    final Pointer<Int32> ptr = malloc.allocate<Int32>(priorities.length * sizeOf<Int32>());
+    for (int i = 0; i < priorities.length; i++) {
+      ptr[i] = priorities[i];
+    }
+    _bindings.te_torrent_set_all_piece_priorities(_handlePtr, ptr, priorities.length);
+    malloc.free(ptr);
+  }
+
+  /// Returns the byte offset of a file within the torrent's piece space.
+  /// Returns -1 if metadata is not available or index is invalid.
+  /// Use this instead of summing previous file sizes — it correctly handles
+  /// padding files in multi-file torrents.
+  int getFileOffset(int fileIndex) {
+    return _bindings.te_torrent_get_file_offset(_handlePtr, fileIndex);
+  }
+
   // --- File Prioritization ---
 
   /// Set the download priority of a single file.
