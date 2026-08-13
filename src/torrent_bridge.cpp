@@ -150,7 +150,9 @@ static std::string serialize_alert(libtorrent::alert* a) {
         
         // Torrent alert base → extract torrent_id
         if (auto* ta = libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
-            json << ",\"torrent_id\":" << ta->handle.id();
+            if (ta->handle.is_valid()) {
+                json << ",\"torrent_id\":" << ta->handle.id();
+            }
         }
 
         // state_update_alert → bulk status updates
@@ -160,7 +162,11 @@ static std::string serialize_alert(libtorrent::alert* a) {
             for (auto& st : su->status) {
                 if (!first) json << ",";
                 json << "{";
-                json << "\"id\":" << st.handle.id() << ",";
+                if (st.handle.is_valid()) {
+                    json << "\"id\":" << st.handle.id() << ",";
+                } else {
+                    json << "\"id\":0,";
+                }
                 json << "\"state\":" << static_cast<int>(st.state) << ",";
                 json << "\"progress\":" << st.progress << ",";
                 json << "\"download_rate\":" << st.download_rate << ",";
