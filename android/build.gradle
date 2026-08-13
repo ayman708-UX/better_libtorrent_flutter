@@ -56,8 +56,8 @@ android {
         // Download prebuilt artifact
         task downloadNativeLibs {
             doLast {
-                def version = "0.0.5"
-                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.5/torrent_engine-android.zip"
+                def version = "0.0.6"
+                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.6/torrent_engine-android.zip"
                 def zipFile = new File(project.buildDir, "torrent_engine-android.zip")
                 def extractDir = new File(project.projectDir, "src/main/jniLibs")
 

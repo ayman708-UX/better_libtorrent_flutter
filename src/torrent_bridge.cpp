@@ -390,6 +390,15 @@ te_session_t* te_session_create(const char* config_json) {
     sp.set_bool(libtorrent::settings_pack::enable_upnp, true);
     sp.set_bool(libtorrent::settings_pack::enable_natpmp, true);
     
+    // High-performance streaming defaults
+    sp.set_int(libtorrent::settings_pack::connection_speed, 500);
+    sp.set_int(libtorrent::settings_pack::torrent_connect_boost, 100);
+    sp.set_int(libtorrent::settings_pack::mixed_mode_algorithm, libtorrent::settings_pack::prefer_tcp);
+    sp.set_int(libtorrent::settings_pack::recv_socket_buffer_size, 2097152); // 2 MB
+    sp.set_int(libtorrent::settings_pack::send_socket_buffer_size, 2097152); // 2 MB
+    sp.set_int(libtorrent::settings_pack::max_out_request_queue, 1500);
+    sp.set_int(libtorrent::settings_pack::max_allowed_in_request_queue, 1500);
+
     // Parse config_json if provided
     if (config_json) {
         std::string conf(config_json);
@@ -472,10 +481,17 @@ static bool json_find_bool(const std::string& json, const std::string& key, bool
     if (pos == std::string::npos) return false;
     auto colon = json.find(":", pos + needle.size());
     if (colon == std::string::npos) return false;
-    auto val_start = json.find_first_not_of(" \t\n\r", colon + 1);
-    if (val_start == std::string::npos) return false;
-    out = (json.compare(val_start, 4, "true") == 0);
-    return true;
+    auto true_pos = json.find("true", colon + 1);
+    auto false_pos = json.find("false", colon + 1);
+    if (true_pos != std::string::npos && (false_pos == std::string::npos || true_pos < false_pos)) {
+        out = true;
+        return true;
+    }
+    if (false_pos != std::string::npos) {
+        out = false;
+        return true;
+    }
+    return false;
 }
 
 static bool json_find_string(const std::string& json, const std::string& key, std::string& out) {
@@ -514,11 +530,30 @@ void te_session_apply_settings(te_session_t* s, const char* settings_json) {
         sp.set_int(libtorrent::settings_pack::active_seeds, ival);
     if (json_find_int(json, "active_limit", ival))
         sp.set_int(libtorrent::settings_pack::active_limit, ival);
+
+    if (json_find_int(json, "connection_speed", ival))
+        sp.set_int(libtorrent::settings_pack::connection_speed, ival);
+    if (json_find_int(json, "torrent_connect_boost", ival))
+        sp.set_int(libtorrent::settings_pack::torrent_connect_boost, ival);
+    if (json_find_int(json, "mixed_mode_algorithm", ival))
+        sp.set_int(libtorrent::settings_pack::mixed_mode_algorithm, ival);
+    if (json_find_int(json, "recv_socket_buffer_size", ival))
+        sp.set_int(libtorrent::settings_pack::recv_socket_buffer_size, ival);
+    if (json_find_int(json, "send_socket_buffer_size", ival))
+        sp.set_int(libtorrent::settings_pack::send_socket_buffer_size, ival);
+    if (json_find_int(json, "max_out_request_queue", ival))
+        sp.set_int(libtorrent::settings_pack::max_out_request_queue, ival);
+    if (json_find_int(json, "max_allowed_in_request_queue", ival))
+        sp.set_int(libtorrent::settings_pack::max_allowed_in_request_queue, ival);
     
     if (json_find_bool(json, "enable_dht", bval))
         sp.set_bool(libtorrent::settings_pack::enable_dht, bval);
     if (json_find_bool(json, "anonymous_mode", bval))
         sp.set_bool(libtorrent::settings_pack::anonymous_mode, bval);
+    if (json_find_bool(json, "validate_https_trackers", bval))
+        sp.set_bool(libtorrent::settings_pack::validate_https_trackers, bval);
+    if (json_find_bool(json, "enable_os_cache", bval))
+        sp.set_bool(libtorrent::settings_pack::enable_os_cache, bval);
     
     if (json_find_string(json, "listen_interfaces", sval))
         sp.set_str(libtorrent::settings_pack::listen_interfaces, sval);
@@ -559,8 +594,17 @@ char* te_session_get_settings(te_session_t* s) {
     json << "\"active_downloads\":" << sp.get_int(libtorrent::settings_pack::active_downloads) << ",";
     json << "\"active_seeds\":" << sp.get_int(libtorrent::settings_pack::active_seeds) << ",";
     json << "\"active_limit\":" << sp.get_int(libtorrent::settings_pack::active_limit) << ",";
+    json << "\"connection_speed\":" << sp.get_int(libtorrent::settings_pack::connection_speed) << ",";
+    json << "\"torrent_connect_boost\":" << sp.get_int(libtorrent::settings_pack::torrent_connect_boost) << ",";
+    json << "\"mixed_mode_algorithm\":" << sp.get_int(libtorrent::settings_pack::mixed_mode_algorithm) << ",";
+    json << "\"recv_socket_buffer_size\":" << sp.get_int(libtorrent::settings_pack::recv_socket_buffer_size) << ",";
+    json << "\"send_socket_buffer_size\":" << sp.get_int(libtorrent::settings_pack::send_socket_buffer_size) << ",";
+    json << "\"max_out_request_queue\":" << sp.get_int(libtorrent::settings_pack::max_out_request_queue) << ",";
+    json << "\"max_allowed_in_request_queue\":" << sp.get_int(libtorrent::settings_pack::max_allowed_in_request_queue) << ",";
     json << "\"enable_dht\":" << (sp.get_bool(libtorrent::settings_pack::enable_dht) ? "true" : "false") << ",";
     json << "\"anonymous_mode\":" << (sp.get_bool(libtorrent::settings_pack::anonymous_mode) ? "true" : "false") << ",";
+    json << "\"validate_https_trackers\":" << (sp.get_bool(libtorrent::settings_pack::validate_https_trackers) ? "true" : "false") << ",";
+    json << "\"enable_os_cache\":" << (sp.get_bool(libtorrent::settings_pack::enable_os_cache) ? "true" : "false") << ",";
     json << "\"listen_interfaces\":\"" << json_escape(sp.get_str(libtorrent::settings_pack::listen_interfaces)) << "\",";
     json << "\"user_agent\":\"" << json_escape(sp.get_str(libtorrent::settings_pack::user_agent)) << "\",";
     json << "\"proxy_hostname\":\"" << json_escape(sp.get_str(libtorrent::settings_pack::proxy_hostname)) << "\",";

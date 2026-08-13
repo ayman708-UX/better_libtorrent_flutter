@@ -16,7 +16,7 @@ if(DEFINED ENV{TORRENT_ENGINE_BUILD_FROM_SOURCE})
     PARENT_SCOPE
   )
 else()
-  set(PREBUILT_URL "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.5/torrent_engine-windows.zip")
+  set(PREBUILT_URL "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.6/torrent_engine-windows.zip")
   set(ZIP_PATH "${CMAKE_CURRENT_BINARY_DIR}/torrent_engine-windows.zip")
   set(EXTRACT_DIR "${CMAKE_CURRENT_BINARY_DIR}/prebuilt")
 

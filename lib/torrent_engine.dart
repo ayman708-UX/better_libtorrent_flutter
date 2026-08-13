@@ -69,6 +69,18 @@ class SessionSettings {
   int? activeSeeds;
   int? activeLimit;
 
+  // High-performance streaming settings
+  int? connectionSpeed;
+  int? torrentConnectBoost;
+  /// 0=prefer_tcp, 1=peer_proportional
+  int? mixedModeAlgorithm;
+  int? recvSocketBufferSize;
+  int? sendSocketBufferSize;
+  int? maxOutRequestQueue;
+  int? maxAllowedInRequestQueue;
+  bool? validateHttpsTrackers;
+  bool? enableOsCache;
+
   SessionSettings({
     this.downloadRateLimit,
     this.uploadRateLimit,
@@ -88,6 +100,15 @@ class SessionSettings {
     this.activeDownloads,
     this.activeSeeds,
     this.activeLimit,
+    this.connectionSpeed,
+    this.torrentConnectBoost,
+    this.mixedModeAlgorithm,
+    this.recvSocketBufferSize,
+    this.sendSocketBufferSize,
+    this.maxOutRequestQueue,
+    this.maxAllowedInRequestQueue,
+    this.validateHttpsTrackers,
+    this.enableOsCache,
   });
 
   Map<String, dynamic> toJson() {
@@ -110,6 +131,15 @@ class SessionSettings {
     if (activeDownloads != null) map['active_downloads'] = activeDownloads;
     if (activeSeeds != null) map['active_seeds'] = activeSeeds;
     if (activeLimit != null) map['active_limit'] = activeLimit;
+    if (connectionSpeed != null) map['connection_speed'] = connectionSpeed;
+    if (torrentConnectBoost != null) map['torrent_connect_boost'] = torrentConnectBoost;
+    if (mixedModeAlgorithm != null) map['mixed_mode_algorithm'] = mixedModeAlgorithm;
+    if (recvSocketBufferSize != null) map['recv_socket_buffer_size'] = recvSocketBufferSize;
+    if (sendSocketBufferSize != null) map['send_socket_buffer_size'] = sendSocketBufferSize;
+    if (maxOutRequestQueue != null) map['max_out_request_queue'] = maxOutRequestQueue;
+    if (maxAllowedInRequestQueue != null) map['max_allowed_in_request_queue'] = maxAllowedInRequestQueue;
+    if (validateHttpsTrackers != null) map['validate_https_trackers'] = validateHttpsTrackers;
+    if (enableOsCache != null) map['enable_os_cache'] = enableOsCache;
     return map;
   }
 
@@ -133,6 +163,15 @@ class SessionSettings {
       activeDownloads: json['active_downloads'] as int?,
       activeSeeds: json['active_seeds'] as int?,
       activeLimit: json['active_limit'] as int?,
+      connectionSpeed: json['connection_speed'] as int?,
+      torrentConnectBoost: json['torrent_connect_boost'] as int?,
+      mixedModeAlgorithm: json['mixed_mode_algorithm'] as int?,
+      recvSocketBufferSize: json['recv_socket_buffer_size'] as int?,
+      sendSocketBufferSize: json['send_socket_buffer_size'] as int?,
+      maxOutRequestQueue: json['max_out_request_queue'] as int?,
+      maxAllowedInRequestQueue: json['max_allowed_in_request_queue'] as int?,
+      validateHttpsTrackers: json['validate_https_trackers'] as bool?,
+      enableOsCache: json['enable_os_cache'] as bool?,
     );
   }
 }
