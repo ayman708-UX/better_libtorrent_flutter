@@ -18,103 +18,239 @@ class BetterLibtorrentFlutterBindings {
       ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) lookup)
       : _lookup = lookup;
 
+  // =========================================================
+  // Utility
+  // =========================================================
+
+  void te_free_string(ffi.Pointer<ffi.Char> str) {
+    return _te_free_string(str);
+  }
+  late final _te_free_stringPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char>)>>('te_free_string');
+  late final _te_free_string = _te_free_stringPtr.asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+
+  // =========================================================
+  // Certificate configuration
+  // =========================================================
+
   void te_set_ca_bundle_path(ffi.Pointer<ffi.Char> pem_path) {
     return _te_set_ca_bundle_path(pem_path);
   }
-
   late final _te_set_ca_bundle_pathPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char>)>>('te_set_ca_bundle_path');
   late final _te_set_ca_bundle_path = _te_set_ca_bundle_pathPtr.asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+
+  // =========================================================
+  // Session Management
+  // =========================================================
 
   ffi.Pointer<te_session_t> te_session_create(ffi.Pointer<ffi.Char> config_json) {
     return _te_session_create(config_json);
   }
-
   late final _te_session_createPtr = _lookup<ffi.NativeFunction<ffi.Pointer<te_session_t> Function(ffi.Pointer<ffi.Char>)>>('te_session_create');
   late final _te_session_create = _te_session_createPtr.asFunction<ffi.Pointer<te_session_t> Function(ffi.Pointer<ffi.Char>)>();
 
   void te_session_destroy(ffi.Pointer<te_session_t> s) {
     return _te_session_destroy(s);
   }
-
   late final _te_session_destroyPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>)>>('te_session_destroy');
   late final _te_session_destroy = _te_session_destroyPtr.asFunction<void Function(ffi.Pointer<te_session_t>)>();
 
   void te_session_set_alert_callback(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.NativeFunction<te_alert_callbackFunction>> cb, ffi.Pointer<ffi.Void> user_data) {
     return _te_session_set_alert_callback(s, cb, user_data);
   }
-
   late final _te_session_set_alert_callbackPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.NativeFunction<te_alert_callbackFunction>>, ffi.Pointer<ffi.Void>)>>('te_session_set_alert_callback');
   late final _te_session_set_alert_callback = _te_session_set_alert_callbackPtr.asFunction<void Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.NativeFunction<te_alert_callbackFunction>>, ffi.Pointer<ffi.Void>)>();
 
-  void te_session_pause(ffi.Pointer<te_session_t> s) {
-    return _te_session_pause(s);
-  }
-
+  void te_session_pause(ffi.Pointer<te_session_t> s) => _te_session_pause(s);
   late final _te_session_pausePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>)>>('te_session_pause');
   late final _te_session_pause = _te_session_pausePtr.asFunction<void Function(ffi.Pointer<te_session_t>)>();
 
-  void te_session_resume(ffi.Pointer<te_session_t> s) {
-    return _te_session_resume(s);
-  }
-
+  void te_session_resume(ffi.Pointer<te_session_t> s) => _te_session_resume(s);
   late final _te_session_resumePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>)>>('te_session_resume');
   late final _te_session_resume = _te_session_resumePtr.asFunction<void Function(ffi.Pointer<te_session_t>)>();
 
-  ffi.Pointer<te_torrent_handle_t> te_add_magnet(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.Char> magnet_uri, ffi.Pointer<ffi.Char> save_path) {
-    return _te_add_magnet(s, magnet_uri, save_path);
-  }
+  // =========================================================
+  // Session Settings
+  // =========================================================
 
+  void te_session_apply_settings(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.Char> settings_json) => _te_session_apply_settings(s, settings_json);
+  late final _te_session_apply_settingsPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Char>)>>('te_session_apply_settings');
+  late final _te_session_apply_settings = _te_session_apply_settingsPtr.asFunction<void Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> te_session_get_settings(ffi.Pointer<te_session_t> s) => _te_session_get_settings(s);
+  late final _te_session_get_settingsPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_session_t>)>>('te_session_get_settings');
+  late final _te_session_get_settings = _te_session_get_settingsPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_session_t>)>();
+
+  bool te_session_is_dht_running(ffi.Pointer<te_session_t> s) => _te_session_is_dht_running(s);
+  late final _te_session_is_dht_runningPtr = _lookup<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<te_session_t>)>>('te_session_is_dht_running');
+  late final _te_session_is_dht_running = _te_session_is_dht_runningPtr.asFunction<bool Function(ffi.Pointer<te_session_t>)>();
+
+  void te_session_post_torrent_updates(ffi.Pointer<te_session_t> s) => _te_session_post_torrent_updates(s);
+  late final _te_session_post_torrent_updatesPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>)>>('te_session_post_torrent_updates');
+  late final _te_session_post_torrent_updates = _te_session_post_torrent_updatesPtr.asFunction<void Function(ffi.Pointer<te_session_t>)>();
+
+  void te_session_post_session_stats(ffi.Pointer<te_session_t> s) => _te_session_post_session_stats(s);
+  late final _te_session_post_session_statsPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>)>>('te_session_post_session_stats');
+  late final _te_session_post_session_stats = _te_session_post_session_statsPtr.asFunction<void Function(ffi.Pointer<te_session_t>)>();
+
+  // =========================================================
+  // Torrent Management
+  // =========================================================
+
+  ffi.Pointer<te_torrent_handle_t> te_add_magnet(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.Char> magnet_uri, ffi.Pointer<ffi.Char> save_path) => _te_add_magnet(s, magnet_uri, save_path);
   late final _te_add_magnetPtr = _lookup<ffi.NativeFunction<ffi.Pointer<te_torrent_handle_t> Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('te_add_magnet');
   late final _te_add_magnet = _te_add_magnetPtr.asFunction<ffi.Pointer<te_torrent_handle_t> Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<te_torrent_handle_t> te_add_torrent_file(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.Uint8> data, int len, ffi.Pointer<ffi.Char> save_path) {
-    return _te_add_torrent_file(s, data, len, save_path);
-  }
-
+  ffi.Pointer<te_torrent_handle_t> te_add_torrent_file(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.Uint8> data, int len, ffi.Pointer<ffi.Char> save_path) => _te_add_torrent_file(s, data, len, save_path);
   late final _te_add_torrent_filePtr = _lookup<ffi.NativeFunction<ffi.Pointer<te_torrent_handle_t> Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Uint8>, ffi.Size, ffi.Pointer<ffi.Char>)>>('te_add_torrent_file');
   late final _te_add_torrent_file = _te_add_torrent_filePtr.asFunction<ffi.Pointer<te_torrent_handle_t> Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Uint8>, int, ffi.Pointer<ffi.Char>)>();
 
-  void te_torrent_pause(ffi.Pointer<te_torrent_handle_t> h) {
-    return _te_torrent_pause(h);
-  }
+  ffi.Pointer<te_torrent_handle_t> te_add_torrent_with_resume(ffi.Pointer<te_session_t> s, ffi.Pointer<ffi.Uint8> resume_data, int len, ffi.Pointer<ffi.Char> save_path) => _te_add_torrent_with_resume(s, resume_data, len, save_path);
+  late final _te_add_torrent_with_resumePtr = _lookup<ffi.NativeFunction<ffi.Pointer<te_torrent_handle_t> Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Uint8>, ffi.Size, ffi.Pointer<ffi.Char>)>>('te_add_torrent_with_resume');
+  late final _te_add_torrent_with_resume = _te_add_torrent_with_resumePtr.asFunction<ffi.Pointer<te_torrent_handle_t> Function(ffi.Pointer<te_session_t>, ffi.Pointer<ffi.Uint8>, int, ffi.Pointer<ffi.Char>)>();
 
+  void te_torrent_pause(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_pause(h);
   late final _te_torrent_pausePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_pause');
   late final _te_torrent_pause = _te_torrent_pausePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
 
-  void te_torrent_resume(ffi.Pointer<te_torrent_handle_t> h) {
-    return _te_torrent_resume(h);
-  }
-
+  void te_torrent_resume(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_resume(h);
   late final _te_torrent_resumePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_resume');
   late final _te_torrent_resume = _te_torrent_resumePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
 
-  void te_torrent_remove(ffi.Pointer<te_session_t> s, ffi.Pointer<te_torrent_handle_t> h, bool delete_files) {
-    return _te_torrent_remove(s, h, delete_files ? 1 : 0);
-  }
-
+  void te_torrent_remove(ffi.Pointer<te_session_t> s, ffi.Pointer<te_torrent_handle_t> h, bool delete_files) => _te_torrent_remove(s, h, delete_files ? 1 : 0);
   late final _te_torrent_removePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_session_t>, ffi.Pointer<te_torrent_handle_t>, ffi.Uint8)>>('te_torrent_remove');
   late final _te_torrent_remove = _te_torrent_removePtr.asFunction<void Function(ffi.Pointer<te_session_t>, ffi.Pointer<te_torrent_handle_t>, int)>();
 
-  void te_torrent_set_sequential_download(ffi.Pointer<te_torrent_handle_t> h, bool enabled) {
-    return _te_torrent_set_sequential_download(h, enabled ? 1 : 0);
-  }
+  // =========================================================
+  // Torrent Info & Status
+  // =========================================================
 
+  ffi.Pointer<ffi.Char> te_torrent_get_status(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_status(h);
+  late final _te_torrent_get_statusPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_status');
+  late final _te_torrent_get_status = _te_torrent_get_statusPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  ffi.Pointer<ffi.Char> te_torrent_get_name(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_name(h);
+  late final _te_torrent_get_namePtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_name');
+  late final _te_torrent_get_name = _te_torrent_get_namePtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  ffi.Pointer<ffi.Char> te_torrent_get_info_hash(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_info_hash(h);
+  late final _te_torrent_get_info_hashPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_info_hash');
+  late final _te_torrent_get_info_hash = _te_torrent_get_info_hashPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  int te_torrent_get_file_count(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_file_count(h);
+  late final _te_torrent_get_file_countPtr = _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_file_count');
+  late final _te_torrent_get_file_count = _te_torrent_get_file_countPtr.asFunction<int Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  ffi.Pointer<ffi.Char> te_torrent_get_files(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_files(h);
+  late final _te_torrent_get_filesPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_files');
+  late final _te_torrent_get_files = _te_torrent_get_filesPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  ffi.Pointer<ffi.Char> te_torrent_get_piece_info(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_piece_info(h);
+  late final _te_torrent_get_piece_infoPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_piece_info');
+  late final _te_torrent_get_piece_info = _te_torrent_get_piece_infoPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  // =========================================================
+  // Streaming & Piece Control
+  // =========================================================
+
+  void te_torrent_set_sequential_download(ffi.Pointer<te_torrent_handle_t> h, bool enabled) => _te_torrent_set_sequential_download(h, enabled ? 1 : 0);
   late final _te_torrent_set_sequential_downloadPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Uint8)>>('te_torrent_set_sequential_download');
   late final _te_torrent_set_sequential_download = _te_torrent_set_sequential_downloadPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
 
-  void te_torrent_set_file_priority(ffi.Pointer<te_torrent_handle_t> h, int file_index, int priority) {
-    return _te_torrent_set_file_priority(h, file_index, priority);
-  }
+  bool te_torrent_have_piece(ffi.Pointer<te_torrent_handle_t> h, int piece_index) => _te_torrent_have_piece(h, piece_index);
+  late final _te_torrent_have_piecePtr = _lookup<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_have_piece');
+  late final _te_torrent_have_piece = _te_torrent_have_piecePtr.asFunction<bool Function(ffi.Pointer<te_torrent_handle_t>, int)>();
 
+  void te_torrent_read_piece(ffi.Pointer<te_torrent_handle_t> h, int piece_index) => _te_torrent_read_piece(h, piece_index);
+  late final _te_torrent_read_piecePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_read_piece');
+  late final _te_torrent_read_piece = _te_torrent_read_piecePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  void te_torrent_set_piece_deadline(ffi.Pointer<te_torrent_handle_t> h, int piece_index, int deadline, int flags) => _te_torrent_set_piece_deadline(h, piece_index, deadline, flags);
+  late final _te_torrent_set_piece_deadlinePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32, ffi.Int32, ffi.Int32)>>('te_torrent_set_piece_deadline');
+  late final _te_torrent_set_piece_deadline = _te_torrent_set_piece_deadlinePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int, int, int)>();
+
+  void te_torrent_reset_piece_deadline(ffi.Pointer<te_torrent_handle_t> h, int piece_index) => _te_torrent_reset_piece_deadline(h, piece_index);
+  late final _te_torrent_reset_piece_deadlinePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_reset_piece_deadline');
+  late final _te_torrent_reset_piece_deadline = _te_torrent_reset_piece_deadlinePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  void te_torrent_clear_piece_deadlines(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_clear_piece_deadlines(h);
+  late final _te_torrent_clear_piece_deadlinesPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_clear_piece_deadlines');
+  late final _te_torrent_clear_piece_deadlines = _te_torrent_clear_piece_deadlinesPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  // =========================================================
+  // File Prioritization
+  // =========================================================
+
+  void te_torrent_set_file_priority(ffi.Pointer<te_torrent_handle_t> h, int file_index, int priority) => _te_torrent_set_file_priority(h, file_index, priority);
   late final _te_torrent_set_file_priorityPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32, ffi.Int32)>>('te_torrent_set_file_priority');
   late final _te_torrent_set_file_priority = _te_torrent_set_file_priorityPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int, int)>();
 
-  void te_torrent_set_piece_deadline(ffi.Pointer<te_torrent_handle_t> h, int piece_index, int deadline, int flags) {
-    return _te_torrent_set_piece_deadline(h, piece_index, deadline, flags);
-  }
+  ffi.Pointer<ffi.Char> te_torrent_get_file_priorities(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_file_priorities(h);
+  late final _te_torrent_get_file_prioritiesPtr = _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_file_priorities');
+  late final _te_torrent_get_file_priorities = _te_torrent_get_file_prioritiesPtr.asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<te_torrent_handle_t>)>();
 
-  late final _te_torrent_set_piece_deadlinePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32, ffi.Int32, ffi.Int32)>>('te_torrent_set_piece_deadline');
-  late final _te_torrent_set_piece_deadline = _te_torrent_set_piece_deadlinePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int, int, int)>();
+  void te_torrent_set_all_file_priorities(ffi.Pointer<te_torrent_handle_t> h, ffi.Pointer<ffi.Int32> priorities, int count) => _te_torrent_set_all_file_priorities(h, priorities, count);
+  late final _te_torrent_set_all_file_prioritiesPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Pointer<ffi.Int32>, ffi.Int32)>>('te_torrent_set_all_file_priorities');
+  late final _te_torrent_set_all_file_priorities = _te_torrent_set_all_file_prioritiesPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Pointer<ffi.Int32>, int)>();
+
+  // =========================================================
+  // Per-Torrent Limits
+  // =========================================================
+
+  void te_torrent_set_upload_limit(ffi.Pointer<te_torrent_handle_t> h, int limit) => _te_torrent_set_upload_limit(h, limit);
+  late final _te_torrent_set_upload_limitPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_set_upload_limit');
+  late final _te_torrent_set_upload_limit = _te_torrent_set_upload_limitPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  void te_torrent_set_download_limit(ffi.Pointer<te_torrent_handle_t> h, int limit) => _te_torrent_set_download_limit(h, limit);
+  late final _te_torrent_set_download_limitPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_set_download_limit');
+  late final _te_torrent_set_download_limit = _te_torrent_set_download_limitPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  int te_torrent_get_upload_limit(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_upload_limit(h);
+  late final _te_torrent_get_upload_limitPtr = _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_upload_limit');
+  late final _te_torrent_get_upload_limit = _te_torrent_get_upload_limitPtr.asFunction<int Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  int te_torrent_get_download_limit(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_download_limit(h);
+  late final _te_torrent_get_download_limitPtr = _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_download_limit');
+  late final _te_torrent_get_download_limit = _te_torrent_get_download_limitPtr.asFunction<int Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  void te_torrent_set_max_connections(ffi.Pointer<te_torrent_handle_t> h, int max) => _te_torrent_set_max_connections(h, max);
+  late final _te_torrent_set_max_connectionsPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_set_max_connections');
+  late final _te_torrent_set_max_connections = _te_torrent_set_max_connectionsPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  void te_torrent_set_max_uploads(ffi.Pointer<te_torrent_handle_t> h, int max) => _te_torrent_set_max_uploads(h, max);
+  late final _te_torrent_set_max_uploadsPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Int32)>>('te_torrent_set_max_uploads');
+  late final _te_torrent_set_max_uploads = _te_torrent_set_max_uploadsPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int)>();
+
+  // =========================================================
+  // Torrent Control
+  // =========================================================
+
+  void te_torrent_force_reannounce(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_force_reannounce(h);
+  late final _te_torrent_force_reannouncePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_force_reannounce');
+  late final _te_torrent_force_reannounce = _te_torrent_force_reannouncePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  void te_torrent_force_recheck(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_force_recheck(h);
+  late final _te_torrent_force_recheckPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_force_recheck');
+  late final _te_torrent_force_recheck = _te_torrent_force_recheckPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  void te_torrent_save_resume_data(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_save_resume_data(h);
+  late final _te_torrent_save_resume_dataPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_save_resume_data');
+  late final _te_torrent_save_resume_data = _te_torrent_save_resume_dataPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  void te_torrent_move_storage(ffi.Pointer<te_torrent_handle_t> h, ffi.Pointer<ffi.Char> new_path) => _te_torrent_move_storage(h, new_path);
+  late final _te_torrent_move_storagePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Pointer<ffi.Char>)>>('te_torrent_move_storage');
+  late final _te_torrent_move_storage = _te_torrent_move_storagePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Pointer<ffi.Char>)>();
+
+  void te_torrent_set_flags(ffi.Pointer<te_torrent_handle_t> h, int flags, int mask) => _te_torrent_set_flags(h, flags, mask);
+  late final _te_torrent_set_flagsPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>, ffi.Uint64, ffi.Uint64)>>('te_torrent_set_flags');
+  late final _te_torrent_set_flags = _te_torrent_set_flagsPtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>, int, int)>();
+
+  int te_torrent_get_flags(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_get_flags(h);
+  late final _te_torrent_get_flagsPtr = _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_get_flags');
+  late final _te_torrent_get_flags = _te_torrent_get_flagsPtr.asFunction<int Function(ffi.Pointer<te_torrent_handle_t>)>();
+
+  void te_torrent_flush_cache(ffi.Pointer<te_torrent_handle_t> h) => _te_torrent_flush_cache(h);
+  late final _te_torrent_flush_cachePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<te_torrent_handle_t>)>>('te_torrent_flush_cache');
+  late final _te_torrent_flush_cache = _te_torrent_flush_cachePtr.asFunction<void Function(ffi.Pointer<te_torrent_handle_t>)>();
 }
 
 final class te_session_t extends ffi.Opaque {}
