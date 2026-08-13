@@ -141,125 +141,129 @@ struct te_torrent_handle_t {
 // Alert Serialization
 // ---------------------------------------------------------
 static std::string serialize_alert(libtorrent::alert* a) {
-    std::ostringstream json;
-    json << "{";
-    json << "\"type\":" << a->type() << ",";
-    json << "\"what\":\"" << json_escape(a->what()) << "\",";
-    json << "\"message\":\"" << json_escape(a->message()) << "\"";
-    
-    // Torrent alert base → extract torrent_id
-    if (auto* ta = libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
-        json << ",\"torrent_id\":" << ta->handle.id();
-    }
-
-    // state_update_alert → bulk status updates
-    if (auto* su = libtorrent::alert_cast<libtorrent::state_update_alert>(a)) {
-        json << ",\"status\":[";
-        bool first = true;
-        for (auto& st : su->status) {
-            if (!first) json << ",";
-            json << "{";
-            json << "\"id\":" << st.handle.id() << ",";
-            json << "\"state\":" << static_cast<int>(st.state) << ",";
-            json << "\"progress\":" << st.progress << ",";
-            json << "\"download_rate\":" << st.download_rate << ",";
-            json << "\"upload_rate\":" << st.upload_rate << ",";
-            json << "\"total_done\":" << st.total_done << ",";
-            json << "\"total_wanted\":" << st.total_wanted << ",";
-            json << "\"num_peers\":" << st.num_peers << ",";
-            json << "\"num_seeds\":" << st.num_seeds << ",";
-            json << "\"num_pieces\":" << st.num_pieces << ",";
-            json << "\"has_metadata\":" << (st.has_metadata ? "true" : "false") << ",";
-            json << "\"is_seeding\":" << (st.is_seeding ? "true" : "false") << ",";
-            json << "\"is_finished\":" << (st.is_finished ? "true" : "false") << ",";
-            json << "\"name\":\"" << json_escape(st.name) << "\",";
-            json << "\"save_path\":\"" << json_escape(st.save_path) << "\",";
-            json << "\"all_time_download\":" << st.all_time_download << ",";
-            json << "\"all_time_upload\":" << st.all_time_upload << ",";
-            json << "\"added_time\":" << st.added_time << ",";
-            json << "\"completed_time\":" << st.completed_time << ",";
-            json << "\"download_payload_rate\":" << st.download_payload_rate << ",";
-            json << "\"upload_payload_rate\":" << st.upload_payload_rate << ",";
-            json << "\"total\":" << st.total << ",";
-            json << "\"total_wanted_done\":" << st.total_wanted_done << ",";
-            json << "\"num_connections\":" << st.num_connections << ",";
-            json << "\"list_seeds\":" << st.list_seeds << ",";
-            json << "\"list_peers\":" << st.list_peers << ",";
-            json << "\"current_tracker\":\"" << json_escape(st.current_tracker) << "\"";
-            json << "}";
-            first = false;
+    try {
+        std::ostringstream json;
+        json << "{";
+        json << "\"type\":" << a->type() << ",";
+        json << "\"what\":\"" << json_escape(a->what()) << "\",";
+        json << "\"message\":\"" << json_escape(a->message()) << "\"";
+        
+        // Torrent alert base → extract torrent_id
+        if (auto* ta = libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
+            json << ",\"torrent_id\":" << ta->handle.id();
         }
-        json << "]";
-    }
 
-    // save_resume_data_alert → serialize resume data as base64
-    if (auto* rd = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a)) {
-        std::vector<char> buf = libtorrent::write_resume_data_buf(rd->params);
-        json << ",\"resume_data\":\"" << base64_encode(buf.data(), buf.size()) << "\"";
-    }
-
-    // save_resume_data_failed_alert
-    if (auto* rf = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
-        json << ",\"error\":\"" << json_escape(rf->error.message()) << "\"";
-    }
-
-    // read_piece_alert → piece data as base64
-    if (auto* rp = libtorrent::alert_cast<libtorrent::read_piece_alert>(a)) {
-        json << ",\"piece\":" << static_cast<int>(rp->piece);
-        json << ",\"size\":" << rp->size;
-        if (rp->buffer && rp->size > 0) {
-            json << ",\"data\":\"" << base64_encode(rp->buffer.get(), rp->size) << "\"";
+        // state_update_alert → bulk status updates
+        if (auto* su = libtorrent::alert_cast<libtorrent::state_update_alert>(a)) {
+            json << ",\"status\":[";
+            bool first = true;
+            for (auto& st : su->status) {
+                if (!first) json << ",";
+                json << "{";
+                json << "\"id\":" << st.handle.id() << ",";
+                json << "\"state\":" << static_cast<int>(st.state) << ",";
+                json << "\"progress\":" << st.progress << ",";
+                json << "\"download_rate\":" << st.download_rate << ",";
+                json << "\"upload_rate\":" << st.upload_rate << ",";
+                json << "\"download_payload_rate\":" << st.download_payload_rate << ",";
+                json << "\"upload_payload_rate\":" << st.upload_payload_rate << ",";
+                json << "\"total_done\":" << st.total_done << ",";
+                json << "\"total_wanted\":" << st.total_wanted << ",";
+                json << "\"total_wanted_done\":" << st.total_wanted_done << ",";
+                json << "\"total\":" << st.total << ",";
+                json << "\"num_peers\":" << st.num_peers << ",";
+                json << "\"num_seeds\":" << st.num_seeds << ",";
+                json << "\"num_pieces\":" << st.num_pieces << ",";
+                json << "\"num_connections\":" << st.num_connections << ",";
+                json << "\"list_seeds\":" << st.list_seeds << ",";
+                json << "\"list_peers\":" << st.list_peers << ",";
+                json << "\"has_metadata\":" << (st.has_metadata ? "true" : "false") << ",";
+                json << "\"is_seeding\":" << (st.is_seeding ? "true" : "false") << ",";
+                json << "\"is_finished\":" << (st.is_finished ? "true" : "false") << ",";
+                json << "\"name\":\"" << json_escape(st.name) << "\",";
+                json << "\"save_path\":\"" << json_escape(st.save_path) << "\",";
+                json << "\"current_tracker\":\"" << json_escape(st.current_tracker) << "\",";
+                json << "\"all_time_download\":" << st.all_time_download << ",";
+                json << "\"all_time_upload\":" << st.all_time_upload << ",";
+                json << "\"added_time\":" << st.added_time << ",";
+                json << "\"completed_time\":" << st.completed_time;
+                json << "}";
+                first = false;
+            }
+            json << "]";
         }
-        if (rp->error) {
-            json << ",\"error\":\"" << json_escape(rp->error.message()) << "\"";
+
+        // save_resume_data_alert → serialize resume data as base64
+        if (auto* rd = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a)) {
+            std::vector<char> buf = libtorrent::write_resume_data_buf(rd->params);
+            json << ",\"resume_data\":\"" << base64_encode(buf.data(), buf.size()) << "\"";
         }
-    }
 
-    // metadata_received_alert
-    if (libtorrent::alert_cast<libtorrent::metadata_received_alert>(a)) {
-        json << ",\"metadata_received\":true";
-    }
-
-    // torrent_finished_alert
-    if (libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
-        json << ",\"finished\":true";
-    }
-
-    // file_completed_alert
-    if (auto* fc = libtorrent::alert_cast<libtorrent::file_completed_alert>(a)) {
-        json << ",\"file_index\":" << static_cast<int>(fc->index);
-    }
-
-    // piece_finished_alert
-    if (auto* pf = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a)) {
-        json << ",\"piece\":" << static_cast<int>(pf->piece_index);
-    }
-
-    // torrent_error_alert
-    if (auto* te = libtorrent::alert_cast<libtorrent::torrent_error_alert>(a)) {
-        json << ",\"error\":\"" << json_escape(te->error.message()) << "\"";
-    }
-
-    // add_torrent_alert
-    if (auto* at = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a)) {
-        if (at->error) {
-            json << ",\"error\":\"" << json_escape(at->error.message()) << "\"";
+        // save_resume_data_failed_alert
+        if (auto* rf = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
+            json << ",\"error\":\"" << json_escape(rf->error.message()) << "\"";
         }
-    }
 
-    // tracker_reply_alert
-    if (auto* tr = libtorrent::alert_cast<libtorrent::tracker_reply_alert>(a)) {
-        json << ",\"num_peers\":" << tr->num_peers;
-    }
+        // read_piece_alert → piece data as base64
+        if (auto* rp = libtorrent::alert_cast<libtorrent::read_piece_alert>(a)) {
+            json << ",\"piece\":" << static_cast<int>(rp->piece);
+            json << ",\"size\":" << rp->size;
+            if (rp->buffer && rp->size > 0) {
+                json << ",\"data\":\"" << base64_encode(rp->buffer.get(), rp->size) << "\"";
+            }
+            if (rp->error) {
+                json << ",\"error\":\"" << json_escape(rp->error.message()) << "\"";
+            }
+        }
 
-    // tracker_error_alert
-    if (auto* ter = libtorrent::alert_cast<libtorrent::tracker_error_alert>(a)) {
-        json << ",\"error\":\"" << json_escape(ter->error.message()) << "\"";
-        json << ",\"status_code\":" << ter->status_code;
-    }
+        // metadata_received_alert
+        if (libtorrent::alert_cast<libtorrent::metadata_received_alert>(a)) {
+            json << ",\"metadata_received\":true";
+        }
 
-    json << "}";
-    return json.str();
+        // torrent_finished_alert
+        if (libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
+            json << ",\"finished\":true";
+        }
+
+        // file_completed_alert
+        if (auto* fc = libtorrent::alert_cast<libtorrent::file_completed_alert>(a)) {
+            json << ",\"file_index\":" << static_cast<int>(fc->index);
+        }
+
+        // piece_finished_alert
+        if (auto* pf = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a)) {
+            json << ",\"piece\":" << static_cast<int>(pf->piece_index);
+        }
+
+        // torrent_error_alert
+        if (auto* te = libtorrent::alert_cast<libtorrent::torrent_error_alert>(a)) {
+            json << ",\"error\":\"" << json_escape(te->error.message()) << "\"";
+        }
+
+        // add_torrent_alert
+        if (auto* at = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a)) {
+            if (at->error) {
+                json << ",\"error\":\"" << json_escape(at->error.message()) << "\"";
+            }
+        }
+
+        // tracker_reply_alert
+        if (auto* tr = libtorrent::alert_cast<libtorrent::tracker_reply_alert>(a)) {
+            json << ",\"num_peers\":" << tr->num_peers;
+        }
+
+        // tracker_error_alert
+        if (auto* ter = libtorrent::alert_cast<libtorrent::tracker_error_alert>(a)) {
+            json << ",\"error\":\"" << json_escape(ter->error.message()) << "\"";
+            json << ",\"status_code\":" << ter->status_code;
+        }
+
+        json << "}";
+        return json.str();
+    } catch (...) {
+        return "{}";
+    }
 }
 
 // ---------------------------------------------------------
@@ -272,12 +276,17 @@ static void alert_pump_loop(te_session_t* s) {
         // Request status updates at a sane interval (every 500ms)
         auto now = std::chrono::steady_clock::now();
         if (now - last_status_request >= std::chrono::milliseconds(500)) {
-            s->session->post_torrent_updates(
-                libtorrent::status_flags_t::all());
+            try {
+                s->session->post_torrent_updates(libtorrent::status_flags_t::all());
+            } catch (...) {}
             last_status_request = now;
         }
 
-        if (!s->session->wait_for_alert(libtorrent::milliseconds(100))) {
+        try {
+            if (!s->session->wait_for_alert(libtorrent::milliseconds(100))) {
+                continue;
+            }
+        } catch (...) {
             continue;
         }
 
@@ -498,13 +507,17 @@ bool te_session_is_dht_running(te_session_t* s) {
 
 void te_session_post_torrent_updates(te_session_t* s) {
     if (s && s->session) {
-        s->session->post_torrent_updates(libtorrent::status_flags_t::all());
+        try {
+            s->session->post_torrent_updates(libtorrent::status_flags_t::all());
+        } catch (...) {}
     }
 }
 
 void te_session_post_session_stats(te_session_t* s) {
     if (s && s->session) {
-        s->session->post_session_stats();
+        try {
+            s->session->post_session_stats();
+        } catch (...) {}
     }
 }
 
@@ -604,42 +617,45 @@ void te_torrent_remove(te_session_t* s, te_torrent_handle_t* h, bool delete_file
 char* te_torrent_get_status(te_torrent_handle_t* h) {
     if (!h || !h->handle.is_valid()) return alloc_string("{}");
     
-    auto st = h->handle.status(
-        libtorrent::torrent_handle::query_name |
-        libtorrent::torrent_handle::query_save_path);
-    
-    std::ostringstream json;
-    json << "{";
-    json << "\"id\":" << h->handle.id() << ",";
-    json << "\"state\":" << static_cast<int>(st.state) << ",";
-    json << "\"progress\":" << st.progress << ",";
-    json << "\"download_rate\":" << st.download_rate << ",";
-    json << "\"upload_rate\":" << st.upload_rate << ",";
-    json << "\"download_payload_rate\":" << st.download_payload_rate << ",";
-    json << "\"upload_payload_rate\":" << st.upload_payload_rate << ",";
-    json << "\"total_done\":" << st.total_done << ",";
-    json << "\"total_wanted\":" << st.total_wanted << ",";
-    json << "\"total_wanted_done\":" << st.total_wanted_done << ",";
-    json << "\"total\":" << st.total << ",";
-    json << "\"num_peers\":" << st.num_peers << ",";
-    json << "\"num_seeds\":" << st.num_seeds << ",";
-    json << "\"num_pieces\":" << st.num_pieces << ",";
-    json << "\"num_connections\":" << st.num_connections << ",";
-    json << "\"list_seeds\":" << st.list_seeds << ",";
-    json << "\"list_peers\":" << st.list_peers << ",";
-    json << "\"has_metadata\":" << (st.has_metadata ? "true" : "false") << ",";
-    json << "\"is_seeding\":" << (st.is_seeding ? "true" : "false") << ",";
-    json << "\"is_finished\":" << (st.is_finished ? "true" : "false") << ",";
-    json << "\"name\":\"" << json_escape(st.name) << "\",";
-    json << "\"save_path\":\"" << json_escape(st.save_path) << "\",";
-    json << "\"current_tracker\":\"" << json_escape(st.current_tracker) << "\",";
-    json << "\"all_time_download\":" << st.all_time_download << ",";
-    json << "\"all_time_upload\":" << st.all_time_upload << ",";
-    json << "\"added_time\":" << st.added_time << ",";
-    json << "\"completed_time\":" << st.completed_time;
-    json << "}";
-    
-    return alloc_string(json.str());
+    try {
+        auto st = h->handle.status(
+            libtorrent::torrent_handle::query_name |
+            libtorrent::torrent_handle::query_save_path);
+        
+        std::ostringstream json;
+        json << "{";
+        json << "\"id\":" << h->handle.id() << ",";
+        json << "\"state\":" << static_cast<int>(st.state) << ",";
+        json << "\"progress\":" << st.progress << ",";
+        json << "\"download_rate\":" << st.download_rate << ",";
+        json << "\"upload_rate\":" << st.upload_rate << ",";
+        json << "\"download_payload_rate\":" << st.download_payload_rate << ",";
+        json << "\"upload_payload_rate\":" << st.upload_payload_rate << ",";
+        json << "\"total_done\":" << st.total_done << ",";
+        json << "\"total_wanted\":" << st.total_wanted << ",";
+        json << "\"total_wanted_done\":" << st.total_wanted_done << ",";
+        json << "\"total\":" << st.total << ",";
+        json << "\"num_peers\":" << st.num_peers << ",";
+        json << "\"num_seeds\":" << st.num_seeds << ",";
+        json << "\"num_pieces\":" << st.num_pieces << ",";
+        json << "\"num_connections\":" << st.num_connections << ",";
+        json << "\"list_seeds\":" << st.list_seeds << ",";
+        json << "\"list_peers\":" << st.list_peers << ",";
+        json << "\"has_metadata\":" << (st.has_metadata ? "true" : "false") << ",";
+        json << "\"is_seeding\":" << (st.is_seeding ? "true" : "false") << ",";
+        json << "\"is_finished\":" << (st.is_finished ? "true" : "false") << ",";
+        json << "\"name\":\"" << json_escape(st.name) << "\",";
+        json << "\"save_path\":\"" << json_escape(st.save_path) << "\",";
+        json << "\"current_tracker\":\"" << json_escape(st.current_tracker) << "\",";
+        json << "\"all_time_download\":" << st.all_time_download << ",";
+        json << "\"all_time_upload\":" << st.all_time_upload << ",";
+        json << "\"added_time\":" << st.added_time << ",";
+        json << "\"completed_time\":" << st.completed_time;
+        json << "}";
+        return alloc_string(json.str());
+    } catch (...) {
+        return alloc_string("{}");
+    }
 }
 
 char* te_torrent_get_name(te_torrent_handle_t* h) {
