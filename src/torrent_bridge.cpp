@@ -23,6 +23,7 @@
 #include <memory>
 #include <chrono>
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
 
 #ifdef _WIN32
@@ -188,7 +189,7 @@ static std::string serialize_alert(libtorrent::alert* a) {
                     json << "\"id\":0,";
                 }
                 json << "\"state\":" << static_cast<int>(st.state) << ",";
-                json << "\"progress\":" << st.progress << ",";
+                json << "\"progress\":" << (std::isnan(st.progress) || std::isinf(st.progress) ? 0.0 : st.progress) << ",";
                 json << "\"download_rate\":" << st.download_rate << ",";
                 json << "\"upload_rate\":" << st.upload_rate << ",";
                 json << "\"download_payload_rate\":" << st.download_payload_rate << ",";
