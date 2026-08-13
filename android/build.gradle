@@ -56,13 +56,13 @@ android {
         // Download prebuilt artifact
         task downloadNativeLibs {
             doLast {
-                def version = "0.0.1"
-                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.1/torrent_engine-android.zip"
+                def version = "0.0.3"
+                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.3/torrent_engine-android.zip"
                 def zipFile = new File(project.buildDir, "torrent_engine-android.zip")
                 def extractDir = new File(project.projectDir, "src/main/jniLibs")
 
                 if (!new File(extractDir, "armeabi-v7a/libtorrent_engine.so").exists()) {
-                    println "Downloading prebuilt Android binaries from ${prebuiltUrl}..."
+                    println "Downloading prebuilt Android binaries from ${zipUrl}..."
                     zipFile.parentFile.mkdirs()
                     new URL(zipUrl).withInputStream { i -> zipFile.withOutputStream { it << i } }
 

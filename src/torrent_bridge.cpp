@@ -144,21 +144,13 @@ struct te_torrent_handle_t {
 
 // Safe message extraction - a->message() can segfault on Windows
 // for freshly-added torrents, so we only use it for non-torrent alerts.
+// Safe message extraction - a->message() accesses internal torrent state
+// that may not be initialized yet or may cause unaligned weak_ptr locks,
+// triggering SIGBUS/SEH access violations.
+// We unconditionally return a->what() which is static and completely crash-safe.
 static std::string safe_alert_message(libtorrent::alert* a) {
-    // For torrent alerts, message() accesses internal torrent state
-    // that may not be initialized yet, causing access violations.
-    // Use what() as a safe fallback for torrent-related alerts.
-    if (libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
-        // Try to get message, but fall back to what() on any failure
-#ifdef _WIN32
-        // On Windows, we cannot catch SEH in try/catch, so skip message()
-        // for torrent alerts entirely
-        return a->what();
-#else
-        try { return a->message(); } catch (...) { return a->what(); }
-#endif
-    }
-    try { return a->message(); } catch (...) { return a->what(); }
+    if (!a) return "";
+    return a->what();
 }
 
 static std::string serialize_alert(libtorrent::alert* a) {
@@ -685,7 +677,7 @@ char* te_torrent_get_status(te_torrent_handle_t* h) {
         json << "{";
         json << "\"id\":" << h->handle.id() << ",";
         json << "\"state\":" << static_cast<int>(st.state) << ",";
-        json << "\"progress\":" << st.progress << ",";
+        json << "\"progress\":" << (std::isnan(st.progress) || std::isinf(st.progress) ? 0.0 : st.progress) << ",";
         json << "\"download_rate\":" << st.download_rate << ",";
         json << "\"upload_rate\":" << st.upload_rate << ",";
         json << "\"download_payload_rate\":" << st.download_payload_rate << ",";
