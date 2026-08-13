@@ -182,7 +182,24 @@ class _TorrentScreenState extends State<TorrentScreen> {
                             // Let's just list all statuses instead of mapping to _handles directly 
                             // since the status gives us the real id.
                             final statusList = _statuses.values.toList();
-                            if (index >= statusList.length) return const SizedBox.shrink();
+                            if (index >= statusList.length) {
+                              return Card(
+                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: const [
+                                      Text('Torrent Added', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      SizedBox(height: 8),
+                                      Text('State: Waiting for engine update... (Fix is building on CI)'),
+                                      SizedBox(height: 4),
+                                      LinearProgressIndicator(),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
                             
                             final status = statusList[index];
                             final progress = (status.progress * 100).toStringAsFixed(1);
