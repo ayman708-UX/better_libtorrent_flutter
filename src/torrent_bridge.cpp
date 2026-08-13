@@ -171,7 +171,7 @@ static std::string serialize_alert(libtorrent::alert* a) {
         json << "\"message\":\"" << json_escape(safe_alert_message(a)) << "\"";
         
         // Torrent alert base → extract torrent_id
-        if (auto* ta = libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
+        if (auto* ta = dynamic_cast<libtorrent::torrent_alert*>(a)) {
             if (ta->handle.is_valid()) {
                 json << ",\"torrent_id\":" << safe_torrent_id(ta->handle);
             }
@@ -284,7 +284,6 @@ static std::string serialize_alert(libtorrent::alert* a) {
         // tracker_error_alert
         if (auto* ter = libtorrent::alert_cast<libtorrent::tracker_error_alert>(a)) {
             json << ",\"error\":\"" << json_escape(ter->error.message()) << "\"";
-            json << ",\"status_code\":" << ter->status_code;
         }
 
         json << "}";
@@ -848,7 +847,7 @@ char* te_torrent_get_piece_priorities(te_torrent_handle_t* h) {
     json << "[";
     for (size_t i = 0; i < prios.size(); ++i) {
         if (i > 0) json << ",";
-        json << static_cast<int>(prios[i]);
+        json << static_cast<int>(static_cast<std::uint8_t>(prios[i]));
     }
     json << "]";
     return alloc_string(json.str());
@@ -892,7 +891,7 @@ char* te_torrent_get_file_priorities(te_torrent_handle_t* h) {
     json << "[";
     for (size_t i = 0; i < prios.size(); ++i) {
         if (i > 0) json << ",";
-        json << static_cast<int>(prios[i]);
+        json << static_cast<int>(static_cast<std::uint8_t>(prios[i]));
     }
     json << "]";
     
