@@ -153,6 +153,15 @@ static std::string safe_alert_message(libtorrent::alert* a) {
     return a->what();
 }
 
+// Safe torrent_handle ID extraction using libtorrent::hash_value(h).
+// Calling h.id() invokes m_torrent.lock() (std::__shared_weak_count::lock()),
+// which can cause unaligned atomic access (SIGBUS on ARM64 Android) if m_torrent
+// is unaligned/partially constructed. hash_value(h) reads the raw pointer safely.
+static uint32_t safe_torrent_id(const libtorrent::torrent_handle& h) {
+    if (!h.is_valid()) return 0;
+    return static_cast<uint32_t>(libtorrent::hash_value(h));
+}
+
 static std::string serialize_alert(libtorrent::alert* a) {
     try {
         std::ostringstream json;
@@ -164,7 +173,7 @@ static std::string serialize_alert(libtorrent::alert* a) {
         // Torrent alert base → extract torrent_id
         if (auto* ta = libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
             if (ta->handle.is_valid()) {
-                json << ",\"torrent_id\":" << ta->handle.id();
+                json << ",\"torrent_id\":" << safe_torrent_id(ta->handle);
             }
         }
 
@@ -176,7 +185,7 @@ static std::string serialize_alert(libtorrent::alert* a) {
                 if (!first) json << ",";
                 json << "{";
                 if (st.handle.is_valid()) {
-                    json << "\"id\":" << st.handle.id() << ",";
+                    json << "\"id\":" << safe_torrent_id(st.handle) << ",";
                 } else {
                     json << "\"id\":0,";
                 }
@@ -675,7 +684,7 @@ char* te_torrent_get_status(te_torrent_handle_t* h) {
         
         std::ostringstream json;
         json << "{";
-        json << "\"id\":" << h->handle.id() << ",";
+        json << "\"id\":" << safe_torrent_id(h->handle) << ",";
         json << "\"state\":" << static_cast<int>(st.state) << ",";
         json << "\"progress\":" << (std::isnan(st.progress) || std::isinf(st.progress) ? 0.0 : st.progress) << ",";
         json << "\"download_rate\":" << st.download_rate << ",";

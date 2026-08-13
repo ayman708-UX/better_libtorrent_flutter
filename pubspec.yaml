@@ -1,6 +1,6 @@
 name: better_libtorrent_flutter
 description: A high-performance Flutter FFI plugin wrapping libtorrent 2.1.1 with support for WebTorrent, streaming, file selection, and custom torrent engine configuration.
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/ayman708-UX/better_libtorrent_flutter
 repository: https://github.com/ayman708-UX/better_libtorrent_flutter
 issue_tracker: https://github.com/ayman708-UX/better_libtorrent_flutter/issues
