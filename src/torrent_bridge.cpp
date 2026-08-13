@@ -140,13 +140,33 @@ struct te_torrent_handle_t {
 // ---------------------------------------------------------
 // Alert Serialization
 // ---------------------------------------------------------
+
+// Safe message extraction - a->message() can segfault on Windows
+// for freshly-added torrents, so we only use it for non-torrent alerts.
+static std::string safe_alert_message(libtorrent::alert* a) {
+    // For torrent alerts, message() accesses internal torrent state
+    // that may not be initialized yet, causing access violations.
+    // Use what() as a safe fallback for torrent-related alerts.
+    if (libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
+        // Try to get message, but fall back to what() on any failure
+#ifdef _WIN32
+        // On Windows, we cannot catch SEH in try/catch, so skip message()
+        // for torrent alerts entirely
+        return a->what();
+#else
+        try { return a->message(); } catch (...) { return a->what(); }
+#endif
+    }
+    try { return a->message(); } catch (...) { return a->what(); }
+}
+
 static std::string serialize_alert(libtorrent::alert* a) {
     try {
         std::ostringstream json;
         json << "{";
         json << "\"type\":" << a->type() << ",";
         json << "\"what\":\"" << json_escape(a->what()) << "\",";
-        json << "\"message\":\"" << json_escape(a->message()) << "\"";
+        json << "\"message\":\"" << json_escape(safe_alert_message(a)) << "\"";
         
         // Torrent alert base → extract torrent_id
         if (auto* ta = libtorrent::alert_cast<libtorrent::torrent_alert>(a)) {
@@ -275,6 +295,35 @@ static std::string serialize_alert(libtorrent::alert* a) {
 // ---------------------------------------------------------
 // Alert Pump Thread
 // ---------------------------------------------------------
+
+// On Windows, wrap the alert processing in a helper that we can
+// call with SEH protection from the main pump loop.
+static void process_single_alert(te_session_t* s, libtorrent::alert* a) {
+    std::string payload = serialize_alert(a);
+    char* payload_ptr = alloc_string(payload);
+
+    std::lock_guard<std::mutex> lk(s->cb_mu);
+    if (s->dart_callback) {
+        s->dart_callback(a->type(), payload_ptr, s->dart_user_data);
+    } else {
+        free(payload_ptr);
+    }
+}
+
+#ifdef _WIN32
+#include <windows.h>
+// SEH-safe wrapper: catches access violations on Windows
+static bool seh_process_alert(te_session_t* s, libtorrent::alert* a) {
+    __try {
+        process_single_alert(s, a);
+        return true;
+    } __except(EXCEPTION_EXECUTE_HANDLER) {
+        // Access violation or other SEH exception - skip this alert
+        return false;
+    }
+}
+#endif
+
 static void alert_pump_loop(te_session_t* s) {
     auto last_status_request = std::chrono::steady_clock::now();
 
@@ -297,23 +346,26 @@ static void alert_pump_loop(te_session_t* s) {
         }
 
         std::vector<libtorrent::alert*> alerts;
-        s->session->pop_alerts(&alerts);
+        try {
+            s->session->pop_alerts(&alerts);
+        } catch (...) {
+            continue;
+        }
 
         for (auto* a : alerts) {
             if (!a) continue;
             
-            std::string payload = serialize_alert(a);
-            char* payload_ptr = alloc_string(payload);
-
-            std::lock_guard<std::mutex> lk(s->cb_mu);
-            if (s->dart_callback) {
-                s->dart_callback(a->type(), payload_ptr, s->dart_user_data);
-            } else {
-                free(payload_ptr);
-            }
+#ifdef _WIN32
+            seh_process_alert(s, a);
+#else
+            try {
+                process_single_alert(s, a);
+            } catch (...) {}
+#endif
         }
     }
 }
+
 
 // ---------------------------------------------------------
 // Session API
