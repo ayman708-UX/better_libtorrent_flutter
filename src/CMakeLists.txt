@@ -49,6 +49,8 @@ endif()
 
 # Add definitions needed by libtorrent
 target_compile_definitions(torrent_engine PRIVATE 
+    TORRENT_ABI_VERSION=2
+    TORRENT_NO_DEPRECATE
     BOOST_ASIO_NO_DEPRECATED
     BOOST_ASIO_DISABLE_CONCEPTS
     TORRENT_USE_OPENSSL

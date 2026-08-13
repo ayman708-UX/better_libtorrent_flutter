@@ -208,7 +208,7 @@ static std::string serialize_alert(libtorrent::alert* a) {
                 json << "\"has_metadata\":" << (st.has_metadata ? "true" : "false") << ",";
                 json << "\"is_seeding\":" << (st.is_seeding ? "true" : "false") << ",";
                 json << "\"is_finished\":" << (st.is_finished ? "true" : "false") << ",";
-                json << "\"name\":\"" << json_escape(st.name) << "\",";
+                json << "\"name\":\"" << (st.has_metadata ? json_escape(st.name) : "") << "\",";
                 json << "\"save_path\":\"" << json_escape(st.save_path) << "\",";
                 json << "\"current_tracker\":\"" << json_escape(st.current_tracker) << "\",";
                 json << "\"all_time_download\":" << st.all_time_download << ",";
@@ -704,7 +704,7 @@ char* te_torrent_get_status(te_torrent_handle_t* h) {
         json << "\"has_metadata\":" << (st.has_metadata ? "true" : "false") << ",";
         json << "\"is_seeding\":" << (st.is_seeding ? "true" : "false") << ",";
         json << "\"is_finished\":" << (st.is_finished ? "true" : "false") << ",";
-        json << "\"name\":\"" << json_escape(st.name) << "\",";
+        json << "\"name\":\"" << (st.has_metadata ? json_escape(st.name) : "") << "\",";
         json << "\"save_path\":\"" << json_escape(st.save_path) << "\",";
         json << "\"current_tracker\":\"" << json_escape(st.current_tracker) << "\",";
         json << "\"all_time_download\":" << st.all_time_download << ",";
