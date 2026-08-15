@@ -43,25 +43,21 @@ android {
         externalNativeBuild {
             cmake {
                 path = "../src/CMakeLists.txt"
-                // The default CMake version for the Android Gradle Plugin is 3.10.2.
-                // https://developer.android.com/studio/projects/install-ndk#vanilla_cmake
-                //
-                // The Flutter tooling requires that developers have CMake 3.10 or later
-                // installed. You should not increase this version, as doing so will cause
-                // the plugin to fail to compile for some customers of the plugin.
-                // version "3.10.2"
+                arguments "-DANDROID_STL=c++_shared"
             }
         }
     } else {
         // Download prebuilt artifact
         task downloadNativeLibs {
             doLast {
-                def version = "0.0.6"
-                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.6/torrent_engine-android.zip"
+                def version = "0.0.7"
+                def zipUrl = "https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.7/torrent_engine-android.zip"
                 def zipFile = new File(project.buildDir, "torrent_engine-android.zip")
                 def extractDir = new File(project.projectDir, "src/main/jniLibs")
 
-                if (!new File(extractDir, "armeabi-v7a/libtorrent_engine.so").exists()) {
+                if (!new File(extractDir, "armeabi-v7a/libtorrent_engine.so").exists() ||
+                    !new File(extractDir, "arm64-v8a/libtorrent_engine.so").exists() ||
+                    !new File(extractDir, "x86_64/libtorrent_engine.so").exists()) {
                     println "Downloading prebuilt Android binaries from ${zipUrl}..."
                     zipFile.parentFile.mkdirs()
                     new URL(zipUrl).withInputStream { i -> zipFile.withOutputStream { it << i } }

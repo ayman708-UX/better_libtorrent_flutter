@@ -43,7 +43,7 @@ if [[ "$TARGET" == android-* ]]; then
   if [[ "$TARGET" == "android-x86_64" ]]; then ABI="x86_64"; fi
   
   # Android Toolchain is passed from GitHub Actions via env var
-  CMAKE_SYSTEM_ARGS=("-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake" "-DANDROID_ABI=${ABI}" "-DANDROID_PLATFORM=android-24" "-GNinja")
+  CMAKE_SYSTEM_ARGS=("-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake" "-DANDROID_ABI=${ABI}" "-DANDROID_PLATFORM=android-24" "-DANDROID_STL=c++_shared" "-DCMAKE_POSITION_INDEPENDENT_CODE=ON" "-GNinja")
 elif [[ "$TARGET" == ios64-* || "$TARGET" == iossimulator-* ]]; then
   CMAKE_SYSTEM_ARGS=("-DCMAKE_SYSTEM_NAME=iOS" "-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" "-DENABLE_BITCODE=OFF" "-DENABLE_ARC=ON")
   if [[ "$TARGET" == *"simulator"* ]]; then

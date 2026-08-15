@@ -2,12 +2,19 @@ cmake_minimum_required(VERSION 3.15)
 if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Android" OR ANDROID)
+  set(ANDROID_STL "c++_shared" CACHE STRING "" FORCE)
+endif()
+
 project(torrent_engine)
 
 # We need C++17 for libtorrent 2.x
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 # The prebuilt static dependencies are passed via -DDEPS_DIR=...
 if(NOT DEPS_DIR)
@@ -47,6 +54,11 @@ if(WIN32)
     )
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Android" OR ANDROID)
+    # 16 KB page-size compliance for Android 15+ (API 35+) / Google Play
+    target_link_options(torrent_engine PRIVATE "-Wl,-z,max-page-size=16384")
+endif()
+
 # Add definitions needed by libtorrent
 target_compile_definitions(torrent_engine PRIVATE 
     TORRENT_ABI_VERSION=2
@@ -54,7 +66,6 @@ target_compile_definitions(torrent_engine PRIVATE
     BOOST_ASIO_NO_DEPRECATED
     BOOST_ASIO_DISABLE_CONCEPTS
     TORRENT_USE_OPENSSL
-    TORRENT_DISABLE_ENCRYPTION=OFF
     TORRENT_BRIDGE_EXPORTS
 )
 

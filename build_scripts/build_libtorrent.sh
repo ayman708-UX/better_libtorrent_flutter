@@ -43,11 +43,11 @@ if [[ "$TARGET" == android-* ]]; then
   if [[ "$TARGET" == "android-x86_64" ]]; then ABI="x86_64"; fi
   
   CMAKE_SYSTEM_ARGS=(
-    "-DCMAKE_SYSTEM_NAME=Android" 
-    "-DCMAKE_ANDROID_NDK=${ANDROID_NDK_ROOT}" 
-    "-DCMAKE_ANDROID_ARCH_ABI=${ABI}" 
-    "-DCMAKE_ANDROID_STL_TYPE=c++_shared" 
-    "-DCMAKE_SYSTEM_VERSION=24" 
+    "-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake"
+    "-DANDROID_ABI=${ABI}"
+    "-DANDROID_PLATFORM=android-24"
+    "-DANDROID_STL=c++_shared"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
     "-GNinja"
   )
   if [[ "$ABI" == "armeabi-v7a" ]]; then

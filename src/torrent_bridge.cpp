@@ -333,7 +333,7 @@ static void alert_pump_loop(te_session_t* s) {
         auto now = std::chrono::steady_clock::now();
         if (now - last_status_request >= std::chrono::milliseconds(500)) {
             try {
-                s->session->post_torrent_updates(libtorrent::status_flags_t::all());
+                s->session->post_torrent_updates();
             } catch (...) {}
             last_status_request = now;
         }
@@ -378,8 +378,6 @@ te_session_t* te_session_create(const char* config_json) {
         libtorrent::alert_category::error |
         libtorrent::alert_category::storage |
         libtorrent::alert_category::performance_warning |
-        libtorrent::alert_category::piece_progress |
-        libtorrent::alert_category::file_progress |
         libtorrent::alert_category::tracker);
     
     // Android-safe defaults: random unprivileged listen port & disable OpenSSL HTTPS CA verification
@@ -390,14 +388,16 @@ te_session_t* te_session_create(const char* config_json) {
     sp.set_bool(libtorrent::settings_pack::enable_upnp, true);
     sp.set_bool(libtorrent::settings_pack::enable_natpmp, true);
     
-    // High-performance streaming defaults
-    sp.set_int(libtorrent::settings_pack::connection_speed, 500);
-    sp.set_int(libtorrent::settings_pack::torrent_connect_boost, 100);
+    // High-performance streaming defaults (tuned for mobile + desktop)
+    sp.set_int(libtorrent::settings_pack::aio_threads, 2);
+    sp.set_int(libtorrent::settings_pack::connections_limit, 150);
+    sp.set_int(libtorrent::settings_pack::connection_speed, 100);
+    sp.set_int(libtorrent::settings_pack::torrent_connect_boost, 30);
     sp.set_int(libtorrent::settings_pack::mixed_mode_algorithm, libtorrent::settings_pack::prefer_tcp);
     sp.set_int(libtorrent::settings_pack::recv_socket_buffer_size, 2097152); // 2 MB
     sp.set_int(libtorrent::settings_pack::send_socket_buffer_size, 2097152); // 2 MB
-    sp.set_int(libtorrent::settings_pack::max_out_request_queue, 1500);
-    sp.set_int(libtorrent::settings_pack::max_allowed_in_request_queue, 1500);
+    sp.set_int(libtorrent::settings_pack::max_out_request_queue, 1000);
+    sp.set_int(libtorrent::settings_pack::max_allowed_in_request_queue, 1000);
 
     // Parse config_json if provided
     if (config_json) {
