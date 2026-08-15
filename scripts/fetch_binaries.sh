@@ -2,9 +2,9 @@
 set -euo pipefail
 
 PLATFORM=$1
-VERSION="0.0.7"
-REPIOS_URL="https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.7/torrent_engine-ios.zip"
-MACOS_URL="https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.7/torrent_engine-macos.zip"
+VERSION="0.0.8"
+REPIOS_URL="https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.8/torrent_engine-ios.zip"
+MACOS_URL="https://github.com/ayman708-UX/better_libtorrent_flutter/releases/download/v0.0.8/torrent_engine-macos.zip"
 
 if [ "$PLATFORM" == "ios" ]; then
   URL=$REPIOS_URL

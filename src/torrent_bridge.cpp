@@ -378,6 +378,7 @@ te_session_t* te_session_create(const char* config_json) {
         libtorrent::alert_category::error |
         libtorrent::alert_category::storage |
         libtorrent::alert_category::performance_warning |
+        libtorrent::alert_category::piece_progress |
         libtorrent::alert_category::tracker);
     
     // Android-safe defaults: random unprivileged listen port & disable OpenSSL HTTPS CA verification
